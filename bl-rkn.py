@@ -337,7 +337,7 @@ def parse_dump(logger):
             block_type = str()
             hash_value = str()
             for new_item in add_id_set:
-                logger.info('Create Item, IP, Domain, URL id: %s.', new_item)
+                logger.info('New Item, IP, Domain, URL id: %s.', new_item)
                 id_inform_add_set.add(new_item)
                 new_item_xml = tree_xml.find(".//*[@id='" + str(new_item) + "']")
                 for data_xml in new_item_xml.iter():

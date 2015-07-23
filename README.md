@@ -1,7 +1,7 @@
 # blacklist-rkn-tool
 
 [![Code Health](https://landscape.io/github/Prototype-X/blacklist-rkn-tool/master/landscape.svg?style=flat)](https://landscape.io/github/Prototype-X/blacklist-rkn-tool/master)
-
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Prototype-X/blacklist-rkn-tool?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 Python3 скрипт для работы с реестром запрещенных сайтов http://vigruzki.rkn.gov.ru/
 
 Возможности bl-rkn.ru:
@@ -42,7 +42,7 @@ MySQLHost = localhost
 
 MySQLPort = 3306
 
-БД mysql должна быть настроена для работы с кодировкой utf-8, сортировки utf8_unicode_ci
+БД mysql должна быть настроена для работы с кодировкой utf-8, сортировкой utf8_unicode_ci
 
 LogRewrite = 0 - дописывать log
 
