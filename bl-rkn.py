@@ -6,7 +6,6 @@ __author__ = "Maximus"
 
 from xml.etree.ElementTree import ElementTree
 from datetime import datetime
-from zapretinfo import ZapretInfo
 import time
 import zipfile
 from base64 import b64decode
@@ -14,11 +13,14 @@ import argparse
 import os.path
 import logging
 import hashlib
-from peewee import *
 import smtplib
 from email.mime.text import MIMEText
-import pymysql
 import subprocess
+
+from peewee import *
+import pymysql
+
+from zapretinfo import ZapretInfo
 from config import Config
 
 database_proxy = Proxy()
