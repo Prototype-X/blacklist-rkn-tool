@@ -573,17 +573,18 @@ def parse_dump(logger):
                 len(sub_ip_inform_add_set) == 0:
             return 2, str()
 
-        msg = gen_report(url_inform_del_set, ip_inform_del_set, domain_inform_del_set, id_inform_del_set,
-                         sub_ip_inform_del_set, url_inform_add_set, ip_inform_add_set, domain_inform_add_set,
-                         id_inform_add_set, sub_ip_inform_add_set)
+        report_data = {'url_del': url_inform_del_set, 'ip_del': ip_inform_del_set, 'domain_del': domain_inform_del_set,
+                       'id_del': id_inform_del_set, 'sub_ip_del': sub_ip_inform_del_set, 'url_add': url_inform_add_set,
+                       'ip_add': ip_inform_add_set, 'domain_add': domain_inform_add_set, 'id_add': id_inform_add_set,
+                       'sub_ip_add': sub_ip_inform_add_set}
+        msg = gen_report(**report_data)
         # print(msg)
         return 1, msg
     else:
         return 0, str()
 
 
-def gen_report(url_inform_del, ip_inform_del, domain_inform_del, id_inform_del, sub_ip_inform_del, url_inform_add,
-               ip_inform_add, domain_inform_add, id_inform_add, sub_ip_inform_add):
+def gen_report(**data):
     domain_count = Domain.select(fn.Count(fn.Distinct(Domain.domain))).scalar()
     url_count = URL.select(fn.Count(fn.Distinct(URL.url))).scalar()
     ip_count = IP.select(fn.Count(fn.Distinct(IP.ip))).scalar()
@@ -594,41 +595,49 @@ def gen_report(url_inform_del, ip_inform_del, domain_inform_del, id_inform_del, 
 
     message = 'vigruzki.rkn.gov.ru update: ' + date_time + '\n'
 
+    url_inform_add = data.get('url_add')
     if len(url_inform_add) > 0:
         message += '\nURLs added: \n\n'
         for url_a in url_inform_add:
             message += url_a + '\n'
 
+    ip_inform_add = data.get('ip_add')
     if len(ip_inform_add) > 0:
         message += '\nIPs added: \n\n'
         for ip_a in ip_inform_add:
             message += ip_a + '\n'
 
+    sub_ip_inform_add = data.get('sub_ip_add')
     if len(sub_ip_inform_add) > 0:
         message += '\nSUBNETs added: \n\n'
         for sub_ip_a in sub_ip_inform_add:
             message += sub_ip_a + '\n'
 
+    domain_inform_add = data.get('domain_add')
     if len(domain_inform_add) > 0:
         message += '\nDOMAINs added: \n\n'
         for domain_a in domain_inform_add:
             message += domain_a + '\n'
 
+    url_inform_del = data.get('url_del')
     if len(url_inform_del) > 0:
         message += '\nURLs deleted: \n\n'
         for url_d in url_inform_del:
             message += url_d + '\n'
 
+    ip_inform_del = data.get('ip_del')
     if len(ip_inform_del) > 0:
         message += '\nIPs deleted: \n\n'
         for ip_d in ip_inform_del:
             message += ip_d + '\n'
 
+    sub_ip_inform_del = data.get('sub_ip_del')
     if len(sub_ip_inform_del) > 0:
         message += '\nSUBNETs deleted: \n\n'
         for sub_ip_d in sub_ip_inform_del:
             message += sub_ip_d + '\n'
 
+    domain_inform_del = data.get('domain_del')
     if len(domain_inform_del) > 0:
         message += '\nDOMAINs deleted: \n\n'
         for domain_d in domain_inform_del:
@@ -639,9 +648,11 @@ def gen_report(url_inform_del, ip_inform_del, domain_inform_del, id_inform_del, 
     message += 'DOMAINs count: ' + str(domain_count) + '\n'
     message += 'Item count: ' + str(id_count) + '\n'
 
+    id_inform_add = data.get('id_add')
     if len(id_inform_add) > 0:
         message += 'Items added: ' + str(len(id_inform_add)) + '\n'
 
+    id_inform_del = data.get('id_del')
     if len(id_inform_del) > 0:
         message += 'Items deleted: ' + str(len(id_inform_del)) + '\n'
 
