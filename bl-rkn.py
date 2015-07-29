@@ -403,7 +403,7 @@ def parse_dump(logger):
                     item_db = Item.get(Item.content_id == content_id)
 
                     if hash_value != item_db.hashRecord:
-                        logger.info('Hashes not equal, update data')
+                        logger.info('Hashes not equal, update hash id: %s', content_id)
                         try:
                             urgency_type = int(data_xml.attrib['urgencyType'])
                         except KeyError:
