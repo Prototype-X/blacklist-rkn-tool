@@ -2,9 +2,9 @@
 
 [![Code Health](https://landscape.io/github/Prototype-X/blacklist-rkn-tool/master/landscape.svg?style=flat)](https://landscape.io/github/Prototype-X/blacklist-rkn-tool/master)
 
-Python3 скрипт для работы с реестром запрещенных сайтов http://vigruzki.rkn.gov.ru/
+Python3 скрипт **bl-rkn.py** для работы с реестром запрещенных сайтов http://vigruzki.rkn.gov.ru/
 
-Возможности bl-rkn.ru:
+Возможности **bl-rkn.py**:
 * Получение дампа реестра
 * Хранение дампа реестра в БД MySQL или SqLite
 * Уведомление по email при обновлении реестра
@@ -59,5 +59,7 @@ Python3 скрипт для работы с реестром запрещенн�
     [Dump]
     DumpFileSave = 1 # сохранять дампы в директории скрипта/dumps/
     GetResultMaxCount = 10 # количество попыток получения дампа`
+
+Описание текущего API http://vigruzki.rkn.gov.ru/docs/description_for_operators_actual.pdf
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Prototype-X/blacklist-rkn-tool?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
