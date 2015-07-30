@@ -28,7 +28,7 @@ Python3 скрипт для работы с реестром запрещенн�
 ###Файл конфигурации:###
 **bl-rkn.cfg**
 
-[DataBase]
+`[DataBase]
 MySQL = 1 # использовать MySQL, 0 - SQlite
 MySQLUser = user
 MySQLPassword = password
@@ -60,6 +60,6 @@ HistoryCount = 0 # не работает
 
 [Dump]
 DumpFileSave = 1 # сохранять дампы в директории скрипта/dumps
-GetResultMaxCount = 10 # количество попыток получения дампа
+GetResultMaxCount = 10 # количество попыток получения дампа`
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Prototype-X/blacklist-rkn-tool?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
