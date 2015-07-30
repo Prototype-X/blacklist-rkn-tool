@@ -28,26 +28,38 @@ Python3 скрипт для работы с реестром запрещенн�
 ###Файл конфигурации:###
 **bl-rkn.cfg**
 
-MySQL = 0 - использовать БД sqlite
-
-MySQL = 1 - БД mysql
-
-Если используется mysql необходимо указать:
-
+[DataBase]
+MySQL = 1 # использовать MySQL, 0 - SQlite
 MySQLUser = user
-
 MySQLPassword = password
-
 MySQLHost = localhost
-
 MySQLPort = 3306
 
-БД mysql должна быть настроена для работы с кодировкой utf-8, сортировкой utf8_unicode_ci
+[Log]
+LogRewrite = 1 # перезаписывать log файл при каждом запуске
+LogPathFName = bl-rkn.log # имя и путь log файла
 
-LogRewrite = 0 - дописывать log
+[Notify]
+Notify = 0 # не отправлять письмо при изменении в реестре
+FromMailAddress = zapret-info@rsoc.ru # адрес отправителя
+ToMailAddress = tech@mail.ru # адрес получателя
 
-LogRewrite = 1 - перезаписывать log при каждом запуске скрипта
+[Request]
+GenerateRequest = 0 # генерировать запрос .xml и .xml.p7s автоматически
+OperatorName = ООО "Телеком"
+inn = 1234567890
+ogrn = 1234567890123
+email = support@mail.ru
+XMLPathFName = request.xml
+P7SPathFName = request.xml.p7s
+PEMPathFName = cert2015.pem # сертификат подписи
+ID = 12345006000000007089123456789001 # id ключа в rutoken
 
-LogPathFName = bl-rkn.log
+[History]
+HistoryCount = 0 # не работает
+
+[Dump]
+DumpFileSave = 1 # сохранять дампы в директории скрипта/dumps
+GetResultMaxCount = 10 # количество попыток получения дампа
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Prototype-X/blacklist-rkn-tool?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
