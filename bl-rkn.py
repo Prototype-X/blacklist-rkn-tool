@@ -92,6 +92,7 @@ def date_time_xml_to_db(date_time_xml):
 
 
 def init_dump_db(logger, cfg):
+    path_py = str(os.path.dirname(os.path.abspath(__file__)))
     if cfg.MySQL():
         login = cfg.MySQLUser()
         password = cfg.MySQLPassword()
@@ -99,15 +100,16 @@ def init_dump_db(logger, cfg):
         port = cfg.MySQLPort()
         db = pymysql.connect(host=host, port=port, user=login, passwd=password)
         cursor = db.cursor()
-        check_db = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'blacklist'"
+        check_db = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" + cfg.DBName() + "'"
         cursor.execute(check_db)
         if not cursor.fetchone():
-            create_db = "CREATE DATABASE IF NOT EXISTS `blacklist` CHARACTER SET utf8 COLLATE utf8_unicode_ci"
+            create_db = "CREATE DATABASE IF NOT EXISTS `" + cfg.DBName() + \
+                        "` CHARACTER SET utf8 COLLATE utf8_unicode_ci"
             cursor.execute(create_db)
-        blacklist_db = MySQLDatabase('blacklist', host=host, port=port, user=login, passwd=password)
+        blacklist_db = MySQLDatabase(cfg.DBName(), host=host, port=port, user=login, passwd=password)
         logger.info('Check database: MySQL Ok')
     else:
-        blacklist_db = SqliteDatabase('blacklist.db', threadlocals=True)
+        blacklist_db = SqliteDatabase(path_py + '/' + cfg.DBName() + '.db', threadlocals=True)
         logger.info('Check database: SQLite Ok')
 
     database_proxy.initialize(blacklist_db)

@@ -28,6 +28,7 @@ class Config(object):
             self.config.set('DataBase', 'MySQLPassword', 'Password')
             self.config.set('DataBase', 'MySQLHost', 'localhost')
             self.config.set('DataBase', 'MySQLPort', '3306')
+            self.config.set('DataBase', 'DBName', 'blacklist')
             self.config.add_section('Log')
             self.config.set('Log', 'LogRewrite', '1')
             self.config.set('Log', 'LogPathFName', 'bl-rkn.log')
@@ -97,6 +98,15 @@ class Config(object):
             mysql_port = '3306'
             exit()
         return mysql_port
+
+    def DBName(self):
+        try:
+            db_name = self.config.get('DataBase', 'DBName')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section DataBase or option DBName in config file')
+            db_name = 'blacklist'
+            exit()
+        return db_name
 
     def LogRewrite(self):
         try:
