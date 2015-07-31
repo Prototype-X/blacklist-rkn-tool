@@ -815,17 +815,15 @@ def main():
     # todo parse_dump() добавить состояние
     # todo оповещение по почте при изменении dumpFormatVersion, webServiceVersion, docVersion
     # todo HistoryCount функционал
-    # todo DumpFileSave = 1 добавить новую опцию путь хранения дампов
+    # todo DumpPath добавить новую опцию путь хранения дампов
     # todo поиск в базе + аргументы командной строки
     # todo обработка исключений и прочих нестандартных ситуации
-    # todo документация
     # todo больше объектов: ZapretInfo, Config, Dump
-    # todo проверять blockType при выдаче url
-    # todo не уведомлять, если в дампе не было измененеий ip, url, domain +
-    # todo venv, requerements.txt
+    # todo venv
     # todo создать пакет pypi
     # todo openssl path добавить параметр
-    # todo отправка почты с авторизацией и ssl, tls
+    # todo отправка почты с аутентификацией и ssl, tls
+    # todo сделать вывод последних изменений ip, url, domain
 
 
 if __name__ == '__main__':
