@@ -4,7 +4,7 @@
 
 Python3 скрипт **bl-rkn.py** для работы с реестром запрещенных сайтов http://vigruzki.rkn.gov.ru/
 
-Сделано на базе этого проекта: https://github.com/yegorov-p/python-zapret-info
+Сделано на базе проекта: https://github.com/yegorov-p/python-zapret-info
 
 ####Возможности:####
 * Получение дампа реестра
@@ -18,6 +18,8 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
 
 ####Установка:####
 
+    pip3 install -r requirements.txt
+    OR
     pip3 install suds-jurko
     pip3 install pymysql
     pip3 install peewee
