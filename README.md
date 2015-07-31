@@ -69,6 +69,7 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
     DumpFileSave = 1 # сохранять дампы в директории скрипта/dumps/
     GetResultMaxCount = 10 # количество попыток получения дампа
 
-Описание текущего API http://vigruzki.rkn.gov.ru/docs/description_for_operators_actual.pdf
+Описание процедуры получения реестра запрещенных сайтов http://vigruzki.rkn.gov.ru/docs/description_for_operators_actual
+.pdf
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Prototype-X/blacklist-rkn-tool?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
