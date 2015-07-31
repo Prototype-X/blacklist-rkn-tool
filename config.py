@@ -14,13 +14,14 @@ class Config(object):
     def __init__(self):
         self.config = configparser.ConfigParser()
         self.config.optionxform = str
-        if os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/bl-rkn.cfg'):
+        path_cfg = str(os.path.dirname(os.path.abspath(__file__)))
+        if os.path.exists(path_cfg + '/bl-rkn.cfg'):
             try:
-                self.config.read(os.path.dirname(os.path.abspath(__file__)) + '/bl-rkn.cfg')
+                self.config.read(path_cfg + '/bl-rkn.cfg')
             except configparser.ParsingError:
                 print('Config bl-rkn.cfg syntax error')
                 exit()
-        elif not os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/bl-rkn.cfg'):
+        elif not os.path.exists(path_cfg + '/bl-rkn.cfg'):
             self.config.add_section('DataBase')
             self.config.set('DataBase', 'MySQL', '0')
             self.config.set('DataBase', 'MySQLUser', 'User')
@@ -49,7 +50,7 @@ class Config(object):
             self.config.add_section('Dump')
             self.config.set('Dump', 'DumpFileSave', '1')
             self.config.set('Dump', 'GetResultMaxCount', '10')
-            with open(os.path.dirname(os.path.abspath(__file__)) + '/bl-rkn.cfg', 'w') as configfile:
+            with open(path_cfg + '/bl-rkn.cfg', 'w') as configfile:
                 self.config.write(configfile)
 
     def MySQL(self):

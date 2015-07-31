@@ -219,6 +219,7 @@ def send_request(logger, session, xml_file, p7s_file, version='2.1'):
 
 
 def get_request(logger, session, code, cfg):
+    path_py = str(os.path.dirname(os.path.abspath(__file__)))
     logger.info('Waiting for a 90 sec.')
     time.sleep(90)
     logger.info('Trying to get result...')
@@ -231,19 +232,18 @@ def get_request(logger, session, code, cfg):
                         request['dumpFormatVersion'],
                         request['operatorName'],
                         request['inn'])
-            with open(os.path.dirname(os.path.abspath(__file__)) + '/result.zip', "wb") as f:
+            with open(path_py + '/result.zip', "wb") as f:
                 f.write(b64decode(request['registerZipArchive']))
             logger.info('Downloaded dump %d bytes, MD5 hashsum: %s',
-                        os.path.getsize(os.path.dirname(os.path.abspath(__file__)) + '/result.zip'),
-                        hashlib.md5(open(os.path.dirname(os.path.abspath(__file__)) + '/result.zip', 'rb')
+                        os.path.getsize(path_py + '/result.zip'),
+                        hashlib.md5(open(path_py + '/result.zip', 'rb')
                                     .read()).hexdigest())
             try:
                 logger.info('Unpacking.')
-                zip_file = zipfile.ZipFile(os.path.dirname(os.path.abspath(__file__)) + '/result.zip', 'r')
-                zip_file.extract('dump.xml', os.path.dirname(os.path.abspath(__file__)) + '/')
+                zip_file = zipfile.ZipFile(path_py + '/result.zip', 'r')
+                zip_file.extract('dump.xml', path_py + '/')
                 if cfg.DumpFileSave():
-                    zip_file.extractall(os.path.dirname(os.path.abspath(__file__)) +
-                                        '/dumps/%s' % datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
+                    zip_file.extractall(path_py + '/dumps/%s' % datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
                 zip_file.close()
             except zipfile.BadZipfile:
                 logger.error('Wrong file format.')
@@ -266,9 +266,10 @@ def get_request(logger, session, code, cfg):
 
 
 def parse_dump(logger):
-    if os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/dump.xml'):
+    path_py = str(os.path.dirname(os.path.abspath(__file__)))
+    if os.path.exists(path_py + '/dump.xml'):
         logger.info('dump.xml already exists.')
-        tree_xml = ElementTree().parse(os.path.dirname(os.path.abspath(__file__)) + '/dump.xml')
+        tree_xml = ElementTree().parse(path_py + '/dump.xml')
 
         dt = datetime.strptime(tree_xml.attrib['updateTime'][:19], '%Y-%m-%dT%H:%M:%S')
         update_time = int(time.mktime(dt.timetuple()))
