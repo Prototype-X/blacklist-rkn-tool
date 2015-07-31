@@ -73,7 +73,7 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
 
 ####Обзор аналогичного ПО:####
 
-* https://github.com/yegorov-p/python-zapret-info - python, скачивает и сохраняет файлы реестра
+* https://github.com/yegorov-p/python-zapret-info - python
 * https://github.com/vnaum/zapret-rss - python
 * https://github.com/aleksandr-rakov/zapret2acl  - python
 * https://github.com/ircop/zapret - perl
@@ -82,7 +82,7 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
 * https://github.com/chelaxe/BlackList - C#
 * https://github.com/apofiget/rkn_registry - Erlang
 * https://github.com/konachan700/RKN_Sync - Visual Basic
-* https://github.com/alamer/ZapretParser
+* https://github.com/alamer/ZapretParser - Java
 * https://www.evernote.com/shard/s185/sh/ceb0b021-47e7-4c61-ab43-bc6db27fe919/c535b6e5047ec69d304519fe81c2c9ac?noteKey=c535b6e5047ec69d304519fe81c2c9ac
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Prototype-X/blacklist-rkn-tool?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
