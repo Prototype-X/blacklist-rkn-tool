@@ -73,7 +73,7 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
 
 Описание процедуры получения реестра: http://vigruzki.rkn.gov.ru/docs/description_for_operators_actual.pdf
 
-####Обзор аналогичного ПО:####
+####Обзор аналогов:####
 
 * https://github.com/yegorov-p/python-zapret-info - python
 * https://github.com/vnaum/zapret-rss - python
