@@ -704,34 +704,42 @@ def notify(logger, message, cfg):
 
 def domain_show():
     domain_sql = Domain.select()
+    domain_set = set()
     for domain_row in domain_sql:
-        print(domain_row.domain)
+        domain_set.add(domain_row.domain)
+
+    for domain in domain_set:
+        print(domain)
     return True
 
 
 def ip_show():
     ip_sql = IP.select()
+    ip_set = set()
     for ip_row in ip_sql:
         if ip_row.mask < 32:
-            print(ip_row.ip + '/' + str(ip_row.mask))
+            ip_set.add(ip_row.ip + '/' + str(ip_row.mask))
         else:
-            print(ip_row.ip)
+            ip_set.add(ip_row.ip)
+
+    for ip in ip_set:
+        print(ip)
     return True
 
 
 def url_show():
-    url = []
+    url_set = set()
     url_sql = URL.select()
     for url_row in url_sql:
-        url.append(url_row.url)
+        url_set.add(url_row.url)
 
     item_sql = Item.select()
     for item_row in item_sql:
         if item_row.blockType == 'domain':
-            url.append('http://' + Domain.get(Domain.item == item_row.content_id).domain)
+            url_set.add('http://' + Domain.get(Domain.item == item_row.content_id).domain)
 
-    for url_one in url:
-        print(url_one)
+    for url in url_set:
+        print(url)
     return True
 
 
