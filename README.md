@@ -4,6 +4,8 @@
 
 Python3 скрипт **bl-rkn.py** для работы с реестром запрещенных сайтов http://vigruzki.rkn.gov.ru/ ~~http://zapret-info.gov.ru/~~
 
+Сделано на базе этого проекта: https://github.com/yegorov-p/python-zapret-info
+
 ####Возможности:####
 * Получение дампа реестра
 * Сохранение дампа реестра в БД MySQL/SQLite
