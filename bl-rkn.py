@@ -755,12 +755,12 @@ def history_show():
 
 def main():
     parser = argparse.ArgumentParser(add_help=True,
-                                     description='Downloads list of restricted websites http://vigruzki.rkn.gov.ru/')
-    parser.add_argument("--url", action="store_true", required=False, default=False, help="url show")
-    parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip show")
-    parser.add_argument("--domain", action="store_true", required=False, default=False, help="domain show")
-    parser.add_argument("--history", action="store_true", required=False, default=False, help="history show")
-
+                                     description='Tool for list of restricted websites http://vigruzki.rkn.gov.ru/')
+    parser.add_argument("--url", action="store_true", required=False, default=False, help="url list show")
+    parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip list show")
+    parser.add_argument("--domain", action="store_true", required=False, default=False, help="domain list show")
+    parser.add_argument("--history", action="store_true", required=False, default=False, help="history list show")
+    parser.add_argument("-v", "--version", action='version', version='version 1.1', help="show version")
     args = parser.parse_args()
 
     ip_print = args.ip
