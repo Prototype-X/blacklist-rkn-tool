@@ -43,6 +43,7 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
     MySQLPassword = password
     MySQLHost = localhost
     MySQLPort = 3306
+    DBName = blacklist # имя БД, для SQlite имя файла DBName.db
 
     [Log]
     LogRewrite = 1 # перезаписывать log файл при каждом запуске
