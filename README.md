@@ -4,7 +4,9 @@
 
 Python3 скрипт **bl-rkn.py** для работы с реестром запрещенных сайтов http://vigruzki.rkn.gov.ru/
 
-Сделано на базе проекта: https://github.com/yegorov-p/python-zapret-info
+Сделано на базе проектов:
+* [python-zapret-info](https://github.com/yegorov-p/python-zapret-info)
+* [php от Wingman](https://www.evernote.com/shard/s185/sh/ceb0b021-47e7-4c61-ab43-bc6db27fe919/c535b6e5047ec69d304519fe81c2c9ac?noteKey=c535b6e5047ec69d304519fe81c2c9ac)
 
 ####Возможности:####
 * Получение дампа реестра
@@ -61,12 +63,12 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
 
     [Request]
     GenerateRequest = 0 # генерировать запрос .xml и .xml.p7s автоматически
-    OperatorName = ООО "Телеком"
+    OperatorName = ООО "Телеком" # параметры необходимые для создания файла подписи
     inn = 1234567890
     ogrn = 1234567890123
     email = support@mail.ru
-    XMLPathFName = request.xml
-    P7SPathFName = request.xml.p7s
+    XMLPathFName = request.xml # путь и имя файла запроса
+    P7SPathFName = request.xml.p7s # путь и имя файла подписи
     PEMPathFName = cert.pem # сертификат подписи
     ID = 12345006000000007089123456789001 # id ключа в rutoken
 
