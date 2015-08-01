@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 __version__ = "0.0.9"
 __author__ = "yegorov.p@gmail.com, https://github.com/yegorov-p/python-zapret-info"
 
@@ -17,25 +18,27 @@ class ZapretInfoException(RuntimeError):
 
 
 class ZapretInfo(object):
-    def getLastDumpDateEx(self):
-        """
-        Оставлен для совместимости. Аналогичен getLastDumpDateEx, но возвращает только один
-        параметр lastDumpDate.
-        """
-        client = suds.client.Client(API_URL)
-        result = client.service.getLastDumpDateEx()
-        return result
 
-    def getLastDumpDate(self):
+    def __init__(self):
+        self.client = suds.client.Client(API_URL)
+
+    def getLastDumpDateEx(self):
         """
         Метод предназначен для получения временной метки последнего обновления выгрузки из реестра,
         а также для получения информации о версиях веб-сервиса, памятки и текущего формата выгрузки.
         """
-        client = suds.client.Client(API_URL)
-        result = client.service.getLastDumpDate()
+        result = self.client.service.getLastDumpDateEx()
         return result
 
-    def sendRequest(self, requestFile, signatureFile, versionNum='2.1'):
+    def getLastDumpDate(self):
+        """
+        Оставлен для совместимости. Аналогичен getLastDumpDateEx, но возвращает только один
+        параметр lastDumpDate.
+        """
+        result = self.client.service.getLastDumpDate()
+        return result
+
+    def sendRequest(self, requestFile, signatureFile, versionNum='2.2'):
         """
         Метод предназначен для направления запроса на получение выгрузки из реестра.
         """
@@ -56,16 +59,12 @@ class ZapretInfo(object):
         sert = b64encode(data)
         sert = sert.decode('utf-8')
 
-        client = suds.client.Client(API_URL)
-        result = client.service.sendRequest(xml, sert, versionNum)
-
+        result = self.client.service.sendRequest(xml, sert, versionNum)
         return dict((k, v) for (k, v) in result)
 
     def getResult(self, code):
         """
         Метод предназначен для получения результата обработки запроса - выгрузки из реестра
         """
-        client = suds.client.Client(API_URL)
-        result = client.service.getResult(code)
-
+        result = self.client.service.getResult(code)
         return dict((k, v) for (k, v) in result)
