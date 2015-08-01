@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-__author__ = "Maximus"
+__author__ = 'Prototype-X'
 
 from xml.etree.ElementTree import ElementTree
 from datetime import datetime
