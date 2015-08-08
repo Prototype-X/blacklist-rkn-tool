@@ -21,7 +21,7 @@ from peewee import *
 import pymysql
 
 from zapretinfo import ZapretInfo
-from config import Config
+from cfg_blrkn import Config
 
 database_proxy = Proxy()
 
