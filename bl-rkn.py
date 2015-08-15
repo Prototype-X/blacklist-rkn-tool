@@ -746,22 +746,6 @@ def url_show():
     return True
 
 
-def url_show_squid():
-    url_set = set()
-    url_sql = URL.select()
-    for url_row in url_sql:
-        url_set.add(url_row.url + '.*')
-
-    item_sql = Item.select()
-    for item_row in item_sql:
-        if item_row.blockType == 'domain':
-            url_set.add('http://' + Domain.get(Domain.item == item_row.content_id).domain + '.*')
-
-    for url in url_set:
-        print(url)
-    return True
-
-
 def history_show():
     history_sql = History.select()
     for history_row in history_sql:
@@ -773,8 +757,6 @@ def main():
     parser = argparse.ArgumentParser(add_help=True,
                                      description='Tool for list of restricted websites http://vigruzki.rkn.gov.ru/')
     parser.add_argument("--url", action="store_true", required=False, default=False, help="url list show")
-    parser.add_argument("--url-squid", action="store_true", required=False, default=False, help="url list for squid "
-                                                                                                "acl")
     parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip list show")
     parser.add_argument("--domain", action="store_true", required=False, default=False, help="domain list show")
     parser.add_argument("--history", action="store_true", required=False, default=False, help="history list show")
@@ -783,7 +765,6 @@ def main():
 
     ip_print = args.ip
     url_print = args.url
-    url_squid = args.url_squid
     domain_print = args.domain
     history_print = args.history
 
@@ -806,8 +787,6 @@ def main():
         ip_show()
     elif url_print:
         url_show()
-    elif url_squid:
-        url_show_squid()
     elif domain_print:
         domain_show()
     elif history_print:
