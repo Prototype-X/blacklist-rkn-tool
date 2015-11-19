@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
 __author__ = 'Prototype-X'
 
 from xml.etree.ElementTree import ElementTree
@@ -158,33 +157,46 @@ def init_dump_db(logger, cfg):
     return True
 
 
-def check_new_dump(logger, session):
-    logger.info('Check if dump.xml has updates since last sync.')
-    last_dump = session.getLastDumpDateEx()
-    last_date_dump = max(last_dump.lastDumpDate // 1000, last_dump.lastDumpDateUrgently // 1000)
-    current_date_dump = max(int(Dump.get(Dump.param == 'lastDumpDate').value),
-                            int(Dump.get(Dump.param == 'lastDumpDateUrgently').value))
+def check_service_upd(logger, update_dump):
+    msg = ''
     logger.info('Current versions: webservice: %s, dump: %s, doc: %s',
                 Dump.get(Dump.param == 'webServiceVersion').value,
                 Dump.get(Dump.param == 'dumpFormatVersion').value,
                 Dump.get(Dump.param == 'docVersion').value)
-    if last_dump.webServiceVersion != Dump.get(Dump.param == 'webServiceVersion').value:
-        logger.warning('New webservice: %s', last_dump.webServiceVersion)
-        Dump.update(value=last_dump.webServiceVersion).where(Dump.param == 'webServiceVersion').execute()
-    if last_dump.dumpFormatVersion != Dump.get(Dump.param == 'dumpFormatVersion').value:
-        logger.warning('New dumpFormatVersion: %s', last_dump.dumpFormatVersion)
-        Dump.update(value=last_dump.dumpFormatVersion).where(Dump.param == 'dumpFormatVersion').execute()
-    if last_dump.docVersion != Dump.get(Dump.param == 'docVersion').value:
-        logger.warning('New docVersion: %s', last_dump.docVersion)
-        Dump.update(value=last_dump.docVersion).where(Dump.param == 'docVersion').execute()
+    if update_dump.webServiceVersion != Dump.get(Dump.param == 'webServiceVersion').value:
+        logger.warning('New webservice: %s', update_dump.webServiceVersion)
+        msg = msg + 'Current webservice:' + Dump.get(Dump.param == 'webServiceVersion').value + '\nNew webservice: ' + \
+                    update_dump.webServiceVersion + '\n'
+        Dump.update(value=update_dump.webServiceVersion).where(Dump.param == 'webServiceVersion').execute()
+
+    if update_dump.dumpFormatVersion != Dump.get(Dump.param == 'dumpFormatVersion').value:
+        logger.warning('New dumpFormatVersion: %s', update_dump.dumpFormatVersion)
+        msg = msg + 'Current dumpFormatVersion: ' + Dump.get(Dump.param == 'dumpFormatVersion').value + \
+                    '\nNew dumpFormatVersion: ' + update_dump.dumpFormatVersion + '\n'
+        Dump.update(value=update_dump.dumpFormatVersion).where(Dump.param == 'dumpFormatVersion').execute()
+
+    if update_dump.docVersion != Dump.get(Dump.param == 'docVersion').value:
+        logger.warning('New docVersion: %s', update_dump.docVersion)
+        msg = msg + 'Current docVersion: ' + Dump.get(Dump.param == 'docVersion').value + '\nNew docVersion: ' + \
+                    update_dump.docVersion + '\n'
+        Dump.update(value=update_dump.docVersion).where(Dump.param == 'docVersion').execute()
+    print(msg)
+    return msg
+
+
+def check_new_dump(logger, update_dump):
+    logger.info('Check if dump.xml has updates since last sync.')
+    last_date_dump = max(update_dump.lastDumpDate // 1000, update_dump.lastDumpDateUrgently // 1000)
+    current_date_dump = max(int(Dump.get(Dump.param == 'lastDumpDate').value),
+                            int(Dump.get(Dump.param == 'lastDumpDateUrgently').value))
     logger.info('Current date: lastDumpDate: %s, lastDumpDateUrgently: %s',
                 datetime.fromtimestamp(int(Dump.get(Dump.param == 'lastDumpDate').value))
                 .strftime('%Y-%m-%d %H:%M:%S'),
                 datetime.fromtimestamp(int(Dump.get(Dump.param == 'lastDumpDateUrgently').value))
                 .strftime('%Y-%m-%d %H:%M:%S'))
     logger.info('Last date: lastDumpDate: %s, lastDumpDateUrgently: %s',
-                datetime.fromtimestamp(int(last_dump.lastDumpDate // 1000)).strftime('%Y-%m-%d %H:%M:%S'),
-                datetime.fromtimestamp(int(last_dump.lastDumpDateUrgently // 1000)).strftime('%Y-%m-%d %H:%M:%S'))
+                datetime.fromtimestamp(int(update_dump.lastDumpDate // 1000)).strftime('%Y-%m-%d %H:%M:%S'),
+                datetime.fromtimestamp(int(update_dump.lastDumpDateUrgently // 1000)).strftime('%Y-%m-%d %H:%M:%S'))
     if last_date_dump != current_date_dump:
         logger.info('New dump is available.')
         # Dump.update(value=last_dump.lastDumpDate // 1000).where(Dump.param == 'lastDumpDate').execute()
@@ -572,10 +584,18 @@ def parse_dump(logger):
                 sub_ip_db_set.clear()
                 sub_ip_xml_set.clear()
 
-        if len(url_inform_del_set) == 0 and len(ip_inform_del_set) == 0 and len(domain_inform_del_set) == 0 and \
-                len(id_inform_del_set) == 0 and len(sub_ip_inform_del_set) == 0 and len(url_inform_add_set) == 0 and \
-                len(ip_inform_add_set) == 0 and len(domain_inform_add_set) == 0 and len(id_inform_add_set) == 0 and \
-                len(sub_ip_inform_add_set) == 0:
+        if (
+            len(url_inform_del_set) == 0 and
+            len(ip_inform_del_set) == 0 and
+            len(domain_inform_del_set) == 0 and
+            len(id_inform_del_set) == 0 and
+            len(sub_ip_inform_del_set) == 0 and
+            len(url_inform_add_set) == 0 and
+            len(ip_inform_add_set) == 0 and
+            len(domain_inform_add_set) == 0 and
+            len(id_inform_add_set) == 0 and
+            len(sub_ip_inform_add_set) == 0
+        ):
             return 2, str()
 
         report_data = {'url_del': url_inform_del_set, 'ip_del': ip_inform_del_set, 'domain_del': domain_inform_del_set,
@@ -688,11 +708,11 @@ def sign_request(logger, cfg):
     return True
 
 
-def notify(logger, message, cfg):
+def notify(logger, message, cfg, subj='vigruzki.rkn.gov.ru ver. 2.2 update'):
     from_address = cfg.FromMail()
     to_address = cfg.ToMail()
     msg = MIMEText(message)
-    msg['Subject'] = 'vigruzki.rkn.gov.ru ver. 2.2 update'
+    msg['Subject'] = subj
     msg['From'] = from_address
     msg['To'] = to_address
     # Send the message via local SMTP server.
@@ -793,7 +813,12 @@ def main():
         history_show()
     else:
         session = ZapretInfo()
-        if check_new_dump(logger, session):
+        upd_dump = session.getLastDumpDateEx()
+        srv_msg = check_service_upd(logger, upd_dump)
+        if srv_msg:
+            if cfg.Notify():
+                notify(logger, srv_msg, cfg, subj='vigruzki.rkn.gov.ru service update')
+        if check_new_dump(logger, upd_dump):
             if cfg.GenRequest():
                 gen_request(logger, cfg)
                 sign_request(logger, cfg)
