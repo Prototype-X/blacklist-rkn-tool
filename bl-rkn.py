@@ -16,7 +16,9 @@ import smtplib
 from email.mime.text import MIMEText
 import subprocess
 
-from peewee import *
+from peewee import Proxy, Model, CharField, TextField, DateField, DateTimeField, IntegerField, SqliteDatabase, \
+    MySQLDatabase, fn, IntegrityError
+
 import pymysql
 
 from zapretinfo import ZapretInfo
@@ -180,7 +182,7 @@ def check_service_upd(logger, update_dump):
         msg = msg + 'Current docVersion: ' + Dump.get(Dump.param == 'docVersion').value + '\nNew docVersion: ' + \
                     update_dump.docVersion + '\n'
         Dump.update(value=update_dump.docVersion).where(Dump.param == 'docVersion').execute()
-    print(msg)
+    # print(msg)
     return msg
 
 
