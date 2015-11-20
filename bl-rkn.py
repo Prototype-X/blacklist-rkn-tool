@@ -780,7 +780,7 @@ def main():
     parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip list show")
     parser.add_argument("--domain", action="store_true", required=False, default=False, help="domain list show")
     parser.add_argument("--history", action="store_true", required=False, default=False, help="history list show")
-    parser.add_argument("-v", "--version", action='version', version='version 1.1', help="show version")
+    parser.add_argument("-v", "--version", action='version', version='version 1.2.1', help="show version")
     args = parser.parse_args()
 
     ip_print = args.ip
@@ -838,15 +838,13 @@ def main():
                         logger.info('parse_dump error')
     logger.info('Script stopped.')
     # todo parse_dump() добавить состояние
-    # todo оповещение по почте при изменении dumpFormatVersion, webServiceVersion, docVersion
     # todo HistoryCount функционал
     # todo DumpPath добавить новую опцию путь хранения дампов
     # todo поиск в базе + аргументы командной строки
     # todo обработка исключений и прочих нестандартных ситуации
     # todo больше объектов: ZapretInfo, Config, Dump
-    # todo venv
-    # todo создать пакет pypi
-    # todo openssl path добавить параметр
+    # todo # создать пакет pypi
+    # todo # openssl path добавить параметр
     # todo отправка почты с аутентификацией и ssl, tls
     # todo сделать вывод последних изменений ip, url, domain
 
