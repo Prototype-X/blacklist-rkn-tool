@@ -168,19 +168,19 @@ def check_service_upd(logger, update_dump):
     if update_dump.webServiceVersion != Dump.get(Dump.param == 'webServiceVersion').value:
         logger.warning('New webservice: %s', update_dump.webServiceVersion)
         msg = msg + 'Current webservice:' + Dump.get(Dump.param == 'webServiceVersion').value + '\nNew webservice: ' + \
-                    update_dump.webServiceVersion + '\n'
+                    update_dump.webServiceVersion + '\n\n'
         Dump.update(value=update_dump.webServiceVersion).where(Dump.param == 'webServiceVersion').execute()
 
     if update_dump.dumpFormatVersion != Dump.get(Dump.param == 'dumpFormatVersion').value:
         logger.warning('New dumpFormatVersion: %s', update_dump.dumpFormatVersion)
         msg = msg + 'Current dumpFormatVersion: ' + Dump.get(Dump.param == 'dumpFormatVersion').value + \
-                    '\nNew dumpFormatVersion: ' + update_dump.dumpFormatVersion + '\n'
+                    '\nNew dumpFormatVersion: ' + update_dump.dumpFormatVersion + '\n\n'
         Dump.update(value=update_dump.dumpFormatVersion).where(Dump.param == 'dumpFormatVersion').execute()
 
     if update_dump.docVersion != Dump.get(Dump.param == 'docVersion').value:
         logger.warning('New docVersion: %s', update_dump.docVersion)
         msg = msg + 'Current docVersion: ' + Dump.get(Dump.param == 'docVersion').value + '\nNew docVersion: ' + \
-                    update_dump.docVersion + '\n'
+                    update_dump.docVersion + '\n\n'
         Dump.update(value=update_dump.docVersion).where(Dump.param == 'docVersion').execute()
     # print(msg)
     return msg
