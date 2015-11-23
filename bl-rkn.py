@@ -199,7 +199,7 @@ def check_new_dump(logger, update_dump):
     logger.info('Last date: lastDumpDate: %s, lastDumpDateUrgently: %s',
                 datetime.fromtimestamp(int(update_dump.lastDumpDate // 1000)).strftime('%Y-%m-%d %H:%M:%S'),
                 datetime.fromtimestamp(int(update_dump.lastDumpDateUrgently // 1000)).strftime('%Y-%m-%d %H:%M:%S'))
-    if last_date_dump != current_date_dump:
+    if last_date_dump != current_date_dump or Dump.get(Dump.param == 'lastResult').value == 'Error':
         logger.info('New dump is available.')
         # Dump.update(value=last_dump.lastDumpDate // 1000).where(Dump.param == 'lastDumpDate').execute()
         # Dump.update(value=last_dump.lastDumpDateUrgently // 1000) \
@@ -277,6 +277,7 @@ def get_request(logger, session, code, cfg):
                              request['resultComment'])
                 Dump.update(value='Error').where(Dump.param == 'lastResult').execute()
                 return False
+    Dump.update(value='Error').where(Dump.param == 'lastResult').execute()
     logger.info('Cant get result.')
     return False
 
