@@ -27,6 +27,9 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
     pip3 install pymysql
     pip3 install peewee
 
+    Для отправки писем:
+    sudo apt-get install sendmail
+
 ####Запуск:####
 
     python3 bl-rkn.py
