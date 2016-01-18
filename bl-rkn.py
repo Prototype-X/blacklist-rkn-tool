@@ -740,32 +740,24 @@ def domain_show():
 
 
 def ip_show():
-    ip_sql = IP.select()
-    ip_set = set()
+    ip_sql = IP.select(fn.Distinct(IP.ip))
     for ip_row in ip_sql:
         if ip_row.mask < 32:
-            ip_set.add(ip_row.ip + '/' + str(ip_row.mask))
+            print(ip_row.ip + '/' + str(ip_row.mask))
         else:
-            ip_set.add(ip_row.ip)
-
-    for ip in ip_set:
-        print(ip)
+            print(ip_row.ip)
     return True
 
 
 def url_show():
-    url_set = set()
-    url_sql = URL.select()
+    url_sql = URL.select(fn.Distinct(URL.url))
     for url_row in url_sql:
-        url_set.add(url_row.url)
+        print(url_row.url)
 
     item_sql = Item.select()
     for item_row in item_sql:
         if item_row.blockType == 'domain':
-            url_set.add('http://' + Domain.get(Domain.item == item_row.content_id).domain)
-
-    for url in url_set:
-        print(url)
+            print('http://' + Domain.get(Domain.item == item_row.content_id).domain)
     return True
 
 
