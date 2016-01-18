@@ -729,13 +729,9 @@ def notify(logger, message, cfg, subj='vigruzki.rkn.gov.ru ver. 2.2 update'):
 
 
 def domain_show():
-    domain_sql = Domain.select()
-    domain_set = set()
+    domain_sql = Domain.select(fn.Distinct(Domain.domain))
     for domain_row in domain_sql:
-        domain_set.add(domain_row.domain)
-
-    for domain in domain_set:
-        print(domain)
+        print(domain_row.domain)
     return True
 
 
