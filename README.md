@@ -88,6 +88,7 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
 ####Обзор аналогов:####
 
 * https://github.com/yegorov-p/python-zapret-info - python
+* https://github.com/DmitryFillo/rknfilter - python
 * https://github.com/vnaum/zapret-rss - python
 * https://github.com/aleksandr-rakov/zapret2acl  - python
 * https://github.com/ircop/zapret - perl
