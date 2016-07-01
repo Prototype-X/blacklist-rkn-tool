@@ -137,6 +137,15 @@ class Config(object):
             exit()
         return notify
 
+    def Auth(self):
+        try:
+            auth = self.config.getboolean('Notify', 'Auth')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option Auth in config file')
+            auth = False
+            exit()
+        return auth
+
     def FromMail(self):
         try:
             from_mail = self.config.get('Notify', 'FromMailAddress')
@@ -154,6 +163,33 @@ class Config(object):
             to_mail = '1@mail.ru'
             exit()
         return to_mail
+
+    def MailServer(self):
+        try:
+            mail_server = self.config.get('Notify', 'Server')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option Server in config file')
+            mail_server = 'localhost'
+            exit()
+        return mail_server
+
+    def MailLogin(self):
+        try:
+            mail_login = self.config.get('Notify', 'Login')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option Login in config file')
+            mail_login = ''
+            exit()
+        return mail_login
+
+    def MailPassword(self):
+        try:
+            mail_password = self.config.get('Notify', 'Password')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option Password in config file')
+            mail_password = ''
+            exit()
+        return mail_password
 
     def GenRequest(self):
         try:

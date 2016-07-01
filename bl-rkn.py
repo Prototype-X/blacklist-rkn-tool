@@ -473,7 +473,7 @@ def parse_dump(logger):
                         logger.info('content_id: %s.', content_id)
                         logger.info('XML number: %s.', decision_number)
                         logger.info('DB number: %s.', item_db.decision_num)
-                        Item.update(decision_numbe=decision_number).where(Item.content_id == content_id).execute()
+                        Item.update(decision_num=decision_number).where(Item.content_id == content_id).execute()
                     if item_db.decision_org != decision_org:
                         logger.info('content_id: %s.', content_id)
                         logger.info('XML org: %s.', decision_org)
@@ -714,6 +714,7 @@ def sign_request(logger, cfg):
 def notify(logger, message, cfg, subj='vigruzki.rkn.gov.ru ver. 2.2 update'):
     from_address = cfg.FromMail()
     to_address = cfg.ToMail()
+    auth = cfg.Auth()
     msg = MIMEText(message)
     msg['Subject'] = subj
     msg['From'] = from_address
@@ -721,10 +722,20 @@ def notify(logger, message, cfg, subj='vigruzki.rkn.gov.ru ver. 2.2 update'):
     # Send the message via local SMTP server.
     logger.info('Send email from %s to %s', from_address, to_address)
     logger.info('%s', message)
-    server = smtplib.SMTP()
-    server.connect()
-    server.sendmail(from_address, to_address, msg.as_string())
-    server.quit()
+    if auth:
+        server_address = cfg.MailServer()
+        login = cfg.MailLogin()
+        password = cfg.MailPassword()
+        server = smtplib.SMTP(server_address)
+        server.ehlo()
+        server.login(login, password)
+        server.sendmail(from_address, to_address, msg.as_string())
+        server.quit()
+    else:
+        server = smtplib.SMTP()
+        server.connect()
+        server.sendmail(from_address, to_address, msg.as_string())
+        server.quit()
     return True
 
 
