@@ -841,17 +841,6 @@ def main():
                             notify(logger, message, cfg)
                         logger.info('parse_dump error')
     logger.info('Script stopped.')
-    # todo parse_dump() добавить состояние
-    # todo HistoryCount функционал
-    # todo DumpPath добавить новую опцию путь хранения дампов
-    # todo поиск в базе + аргументы командной строки
-    # todo обработка исключений и прочих нестандартных ситуации
-    # todo больше объектов: ZapretInfo, Config, Dump
-    # todo # создать пакет pypi
-    # todo # openssl path добавить параметр
-    # todo отправка почты с аутентификацией и ssl, tls
-    # todo сделать вывод последних изменений ip, url, domain
-
 
 if __name__ == '__main__':
     main()
