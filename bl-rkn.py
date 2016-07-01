@@ -715,6 +715,8 @@ def notify(logger, message, cfg, subj='vigruzki.rkn.gov.ru ver. 2.2 update'):
     from_address = cfg.FromMail()
     to_address = cfg.ToMail()
     auth = cfg.Auth()
+    server_address = cfg.MailServer()
+    server_port = cfg.MailServerPort()
     msg = MIMEText(message)
     msg['Subject'] = subj
     msg['From'] = from_address
@@ -723,16 +725,16 @@ def notify(logger, message, cfg, subj='vigruzki.rkn.gov.ru ver. 2.2 update'):
     logger.info('Send email from %s to %s', from_address, to_address)
     logger.info('%s', message)
     if auth:
-        server_address = cfg.MailServer()
         login = cfg.MailLogin()
         password = cfg.MailPassword()
-        server = smtplib.SMTP(server_address)
+        server = smtplib.SMTP(server_address, server_port)
         server.ehlo()
         server.login(login, password)
         server.sendmail(from_address, to_address, msg.as_string())
         server.quit()
     else:
-        server = smtplib.SMTP()
+        server = smtplib.SMTP(server_address, server_port)
+        server.ehlo()
         server.connect()
         server.sendmail(from_address, to_address, msg.as_string())
         server.quit()

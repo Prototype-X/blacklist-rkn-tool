@@ -173,6 +173,15 @@ class Config(object):
             exit()
         return mail_server
 
+    def MailServerPort(self):
+        try:
+            mail_server_port = self.config.get('Notify', 'Port')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option Port in config file')
+            mail_server_port = '25'
+            exit()
+        return mail_server_port
+
     def MailLogin(self):
         try:
             mail_login = self.config.get('Notify', 'Login')
