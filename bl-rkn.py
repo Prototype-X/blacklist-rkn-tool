@@ -711,14 +711,15 @@ def sign_request(logger, cfg):
     return True
 
 
-def notify(logger, message, cfg):
+def notify(logger, message, cfg, subject=''):
     from_address = cfg.MailFrom()
     to_address = cfg.MailTo()
     auth = cfg.MailAuth()
     starttls = cfg.StartTLS()
     server_address = cfg.MailServer()
     server_port = cfg.MailPort()
-    subject = cfg.MailSubject()
+    if not subject:
+        subject = cfg.MailSubject()
     msg = MIMEText(message)
     msg['Subject'] = subject
     msg['From'] = from_address
@@ -825,7 +826,7 @@ def main():
         srv_msg = check_service_upd(logger, upd_dump)
         if srv_msg:
             if cfg.Notify():
-                notify(logger, srv_msg, cfg, subj='vigruzki.rkn.gov.ru service update')
+                notify(logger, srv_msg, cfg, subject='vigruzki.rkn.gov.ru service update')
         if check_new_dump(logger, upd_dump):
             if cfg.GenRequest():
                 gen_request(logger, cfg)
