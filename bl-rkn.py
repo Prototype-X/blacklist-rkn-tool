@@ -473,7 +473,7 @@ def parse_dump(logger):
                         logger.info('content_id: %s.', content_id)
                         logger.info('XML number: %s.', decision_number)
                         logger.info('DB number: %s.', item_db.decision_num)
-                        Item.update(decision_numbe=decision_number).where(Item.content_id == content_id).execute()
+                        Item.update(decision_num=decision_number).where(Item.content_id == content_id).execute()
                     if item_db.decision_org != decision_org:
                         logger.info('content_id: %s.', content_id)
                         logger.info('XML org: %s.', decision_org)
@@ -711,20 +711,37 @@ def sign_request(logger, cfg):
     return True
 
 
-def notify(logger, message, cfg, subj='vigruzki.rkn.gov.ru ver. 2.2 update'):
-    from_address = cfg.FromMail()
-    to_address = cfg.ToMail()
+def notify(logger, message, cfg):
+    from_address = cfg.MailFrom()
+    to_address = cfg.MailTo()
+    auth = cfg.MailAuth()
+    starttls = cfg.StartTLS()
+    server_address = cfg.MailServer()
+    server_port = cfg.MailPort()
+    subject = cfg.MailSubject()
     msg = MIMEText(message)
-    msg['Subject'] = subj
+    msg['Subject'] = subject
     msg['From'] = from_address
     msg['To'] = to_address
-    # Send the message via local SMTP server.
+    # Send the message via SMTP server.
     logger.info('Send email from %s to %s', from_address, to_address)
     logger.info('%s', message)
-    server = smtplib.SMTP()
-    server.connect()
-    server.sendmail(from_address, to_address, msg.as_string())
-    server.quit()
+    if auth:
+        login = cfg.MailLogin()
+        password = cfg.MailPassword()
+        server = smtplib.SMTP(server_address, server_port)
+        server.ehlo()
+        if starttls:
+            server.starttls()
+        server.login(login, password)
+        server.sendmail(from_address, to_address, msg.as_string())
+        server.quit()
+    else:
+        server = smtplib.SMTP(server_address, server_port)
+        server.ehlo()
+        server.connect()
+        server.sendmail(from_address, to_address, msg.as_string())
+        server.quit()
     return True
 
 
@@ -828,17 +845,6 @@ def main():
                             notify(logger, message, cfg)
                         logger.info('parse_dump error')
     logger.info('Script stopped.')
-    # todo parse_dump() добавить состояние
-    # todo HistoryCount функционал
-    # todo DumpPath добавить новую опцию путь хранения дампов
-    # todo поиск в базе + аргументы командной строки
-    # todo обработка исключений и прочих нестандартных ситуации
-    # todo больше объектов: ZapretInfo, Config, Dump
-    # todo # создать пакет pypi
-    # todo # openssl path добавить параметр
-    # todo отправка почты с аутентификацией и ssl, tls
-    # todo сделать вывод последних изменений ip, url, domain
-
 
 if __name__ == '__main__':
     main()

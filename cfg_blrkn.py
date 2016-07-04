@@ -36,6 +36,11 @@ class Config(object):
             self.config.set('Log', 'LogPathFName', 'bl-rkn.log')
             self.config.add_section('Notify')
             self.config.set('Notify', 'Notify', '0')
+            self.config.set('Notify', 'Auth', '0')
+            self.config.set('Notify', 'StartTLS', '0')
+            self.config.set('Notify', 'Server', 'localhost')
+            self.config.set('Notify', 'Port', '25')
+            self.config.set('Notify', 'Subject', 'vigruzki.rkn.gov.ru ver. 2.2 update')
             self.config.set('Notify', 'FromMailAddress', 'zapret-info@rsoc.ru')
             self.config.set('Notify', 'ToMailAddress', '1@mail.ru')
             self.config.add_section('Request')
@@ -137,20 +142,83 @@ class Config(object):
             exit()
         return notify
 
-    def FromMail(self):
+    def MailServer(self):
         try:
-            from_mail = self.config.get('Notify', 'FromMailAddress')
+            mail_server = self.config.get('Notify', 'Server')
         except (configparser.NoOptionError, configparser.NoSectionError):
-            print('Error section Notify or option FromMailAddress in config file')
+            print('Error section Notify or option Server in config file')
+            mail_server = 'localhost'
+            exit()
+        return mail_server
+
+    def MailPort(self):
+        try:
+            mail_port = self.config.get('Notify', 'Port')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option Port in config file')
+            mail_port = '25'
+            exit()
+        return mail_port
+
+    def MailAuth(self):
+        try:
+            mail_auth = self.config.getboolean('Notify', 'Auth')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option Auth in config file')
+            mail_auth = False
+            exit()
+        return mail_auth
+
+    def StartTLS(self):
+        try:
+            starttls = self.config.getboolean('Notify', 'StartTLS')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option StartTLS in config file')
+            starttls = False
+            exit()
+        return starttls
+
+    def MailLogin(self):
+        try:
+            mail_login = self.config.get('Notify', 'Login')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option Login in config file')
+            mail_login = ''
+            exit()
+        return mail_login
+
+    def MailPassword(self):
+        try:
+            mail_password = self.config.get('Notify', 'Password')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option Password in config file')
+            mail_password = ''
+            exit()
+        return mail_password
+
+    def MailSubject(self):
+        try:
+            mail_subject = self.config.get('Notify', 'Subject')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option Subject in config file')
+            mail_subject = 'vigruzki.rkn.gov.ru ver. 2.2 update'
+            exit()
+        return mail_subject
+
+    def MailFrom(self):
+        try:
+            from_mail = self.config.get('Notify', 'From')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Notify or option From in config file')
             from_mail = 'zapret-info@rsoc.ru'
             exit()
         return from_mail
 
-    def ToMail(self):
+    def MailTo(self):
         try:
-            to_mail = self.config.get('Notify', 'ToMailAddress')
+            to_mail = self.config.get('Notify', 'To')
         except (configparser.NoOptionError, configparser.NoSectionError):
-            print('Error section Notify or option ToMailAddress in config file')
+            print('Error section Notify or option To in config file')
             to_mail = '1@mail.ru'
             exit()
         return to_mail
@@ -169,7 +237,7 @@ class Config(object):
             operator = self.config.get('Request', 'OperatorName')
         except (configparser.NoOptionError, configparser.NoSectionError):
             print('Error section Request or option OperatorName in config file')
-            operator = 'ООО "телеком"'
+            operator = 'ООО "Телеком"'
             exit()
         return operator
 
