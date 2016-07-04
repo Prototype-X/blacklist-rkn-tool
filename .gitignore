@@ -7,3 +7,7 @@ dump.xml
 result.zip
 req.xml
 req.xml.sig
+request.xml
+request.xml.p7s
+blacklist.db
+dumps.tar.gz
