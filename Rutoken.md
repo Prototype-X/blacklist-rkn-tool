@@ -133,7 +133,7 @@ https://download.rutoken.ru/Rutoken/Support_OpenSSL/1.0/lin-x86_64/pkcs11_gost.s
 
     openssl x509 -noout -in cert.pem -text
 
-###### Сборка OpenSSL 1.0.1p c libgost.so
+##### Сборка OpenSSL 1.0.1p c libgost.so
 
     wget https://github.com/openssl/openssl/archive/OpenSSL_1_0_1p.tar.gz
     tar xzf openssl-1.0.1p.tar.gz
