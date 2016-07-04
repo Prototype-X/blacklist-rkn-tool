@@ -711,17 +711,19 @@ def sign_request(logger, cfg):
     return True
 
 
-def notify(logger, message, cfg, subj='vigruzki.rkn.gov.ru ver. 2.2 update'):
-    from_address = cfg.FromMail()
-    to_address = cfg.ToMail()
-    auth = cfg.Auth()
+def notify(logger, message, cfg):
+    from_address = cfg.MailFrom()
+    to_address = cfg.MailTo()
+    auth = cfg.MailAuth()
+    starttls = cfg.StartTLS()
     server_address = cfg.MailServer()
-    server_port = cfg.MailServerPort()
+    server_port = cfg.MailPort()
+    subject = cfg.MailSubject()
     msg = MIMEText(message)
-    msg['Subject'] = subj
+    msg['Subject'] = subject
     msg['From'] = from_address
     msg['To'] = to_address
-    # Send the message via local SMTP server.
+    # Send the message via SMTP server.
     logger.info('Send email from %s to %s', from_address, to_address)
     logger.info('%s', message)
     if auth:
@@ -729,6 +731,8 @@ def notify(logger, message, cfg, subj='vigruzki.rkn.gov.ru ver. 2.2 update'):
         password = cfg.MailPassword()
         server = smtplib.SMTP(server_address, server_port)
         server.ehlo()
+        if starttls:
+            server.starttls()
         server.login(login, password)
         server.sendmail(from_address, to_address, msg.as_string())
         server.quit()
