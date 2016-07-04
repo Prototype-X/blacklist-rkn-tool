@@ -8,7 +8,6 @@
 
 ##### Включаем автостарт демона смарт-карт:
 
-    chkconfig pcscd on
     sudo update-rc.d pcscd start
 
 #### 2. Обеспечиваем поддержку в OpenSSL электронного ключа Aktiv Rutoken ECP
