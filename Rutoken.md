@@ -1,8 +1,8 @@
 ## Подписываем запрос на получение реестра запрещенных сайтов в формате PKCS#7 с использованием RuToken
 
-## Системные требования: Ubuntu 14.04 + OpenSSL + OpenSC + Rutoken ECP
+## Системные требования: Ubuntu 14.04 64 bit + OpenSSL + OpenSC + Rutoken ECP
 
-#### 1. Ubuntu 14.04, доустанавливаем недостающее ПО
+#### 1. Ubuntu 14.04 64 bit, доустанавливаем недостающее ПО
 
     apt-get install openssl libengine-pkcs11-openssl libccid libpcsclite1 libtool opensc pcscd
 
@@ -12,13 +12,13 @@
 
 #### 2. Обеспечиваем поддержку в OpenSSL электронного ключа Aktiv Rutoken ECP
 
-##### Скачиваем с сайта производителя библиотеки PKCS#11 и engine для OpenSSL (32 или 64 бит):
+##### Скачиваем с сайта производителя библиотеки PKCS#11 и engine для OpenSSL 64 bit:
 
 https://download.rutoken.ru/Rutoken/PKCS11Lib/1.3.2.0/Linux/x64/lib/librtpkcs11ecp.so
 https://download.rutoken.ru/Rutoken/Support_OpenSSL/1.0/lin-x86_64/pkcs11_gost.so
 
-~~Желательно не менять конфиг ssl использовать отдельный конфиг, который будет указан в параметрах или сделать вторую
-установку openssl.~~
+~~Желательно не менять /etc/ssl/openssl.cnf использовать отдельный конфиг, который будет указан в параметрах или сделать вторую
+установку openssl. В Debian после правки /etc/ssl/openssl.cnf ломался ssh, в Ubuntu таких проблем не возникает.~~
 
 Добавляем в исходный файл /etc/ssl/openssl.cnf:
 
@@ -120,7 +120,7 @@ https://download.rutoken.ru/Rutoken/Support_OpenSSL/1.0/lin-x86_64/pkcs11_gost.s
 
     openssl smime -verify -in document.txt.attached.p7s -noverify -inform der -content document.txt
 
-Примечание
+Примечание:
 Во всех командах openssl используется параметр -noverify - не происходит автоматическая проверка сертификата подписи на валидность.
 
 #### Дополнительная информация
