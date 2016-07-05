@@ -1,6 +1,7 @@
 .idea/
 __pycache__/
 dumps/
+sce/
 bl-rkn.cfg
 bl-rkn.log
 dump.xml
