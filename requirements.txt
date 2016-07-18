@@ -1,3 +1,4 @@
 pymysql
 peewee
 suds-jurko
+lxml
