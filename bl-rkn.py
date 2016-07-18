@@ -3,7 +3,7 @@
 
 __author__ = 'Prototype-X'
 
-from xml.etree.ElementTree import ElementTree
+from lxml.etree import ElementTree
 from datetime import datetime
 import time
 import zipfile
