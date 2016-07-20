@@ -26,6 +26,7 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
     pip3 install suds-jurko
     pip3 install pymysql
     pip3 install peewee
+    pip3 install lxml
 
     Для отправки писем:
     sudo apt-get install sendmail
