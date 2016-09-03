@@ -3,7 +3,14 @@ todo HistoryCount функционал
 todo DumpPath добавить новую опцию путь хранения дампов
 todo поиск в базе + аргументы командной строки
 todo обработка исключений и прочих нестандартных ситуации
-todo больше объектов: ZapretInfo, Config, Dump
-todo создать пакет pypi
 todo openssl path добавить параметр
 todo сделать вывод последних изменений ip, url, domain
+todo добавить аргумент коммандной строки  blockType
+todo добавить поддержку PostgreSQL
+
+todo class DB - для работы с DB
+todo class Dump - для получения данных выгрузки и парсинга в БД
+todo class Notifer - для уведомления об изменении в реестре
+todo class Reporter - генератор отчетов, для отправки через Notifer и вывод в stdout данных из DB
+todo class Config - конфигурация скрипта
+todo class CLI - работает с аргументами коммандной строки
