@@ -25,12 +25,12 @@ class Config(object):
                 exit()
         elif not os.path.exists(path_cfg + '/bl-rkn.cfg'):
             self.config.add_section('DataBase')
-            self.config.set('DataBase', 'MySQL', '0')
-            self.config.set('DataBase', 'MySQLUser', 'User')
-            self.config.set('DataBase', 'MySQLPassword', 'Password')
-            self.config.set('DataBase', 'MySQLHost', 'localhost')
-            self.config.set('DataBase', 'MySQLPort', '3306')
-            self.config.set('DataBase', 'DBName', 'blacklist')
+            self.config.set('DataBase', 'Type', '0')
+            self.config.set('DataBase', 'Name', 'blacklist')
+            self.config.set('DataBase', 'Host', 'localhost')
+            self.config.set('DataBase', 'Port', '5432')
+            self.config.set('DataBase', 'User', 'User')
+            self.config.set('DataBase', 'Password', 'Password')
             self.config.add_section('Log')
             self.config.set('Log', 'LogRewrite', '1')
             self.config.set('Log', 'LogPathFName', 'bl-rkn.log')
@@ -61,59 +61,59 @@ class Config(object):
             with open(path_cfg + '/bl-rkn.cfg', 'w') as configfile:
                 self.config.write(configfile)
 
-    def MySQL(self):
+    def Type(self):
         try:
-            mysql = self.config.getboolean('DataBase', 'MySQL')
+            dbtype = self.config.getboolean('DataBase', 'Type')
         except (configparser.NoOptionError, configparser.NoSectionError):
-            print('Error section DataBase or option MySQL in config file')
-            mysql = 0
+            print('Error section DataBase or option Type in config file')
+            dbtype = 0
             exit()
-        return mysql
+        return dbtype
 
-    def MySQLUser(self):
+    def Name(self):
         try:
-            mysql_user = self.config.get('DataBase', 'MySQLUser')
+            name = self.config.get('DataBase', 'Name')
         except (configparser.NoOptionError, configparser.NoSectionError):
-            print('Error section DataBase or option MySQLUser in config file')
-            mysql_user = 'User'
+            print('Error section DataBase or option Name in config file')
+            name = 'blacklist'
             exit()
-        return mysql_user
+        return name
 
-    def MySQLPassword(self):
+    def Host(self):
         try:
-            mysql_pwd = self.config.get('DataBase', 'MySQLPassword')
+            host = self.config.get('DataBase', 'Host')
         except (configparser.NoOptionError, configparser.NoSectionError):
-            print('Error section DataBase or option MySQLPassword in config file')
-            mysql_pwd = 'Password'
+            print('Error section DataBase or option Host in config file')
+            host = 'localhost'
             exit()
-        return mysql_pwd
+        return host
 
-    def MySQLHost(self):
+    def Port(self):
         try:
-            mysql_host = self.config.get('DataBase', 'MySQLHost')
-        except (configparser.NoOptionError, configparser.NoSectionError):
-            print('Error section DataBase or option MySQLHost in config file')
-            mysql_host = 'localhost'
-            exit()
-        return mysql_host
-
-    def MySQLPort(self):
-        try:
-            mysql_port = self.config.getint('DataBase', 'MySQLPort')
+            port = self.config.getint('DataBase', 'Port')
         except (configparser.NoOptionError, configparser.NoSectionError):
             print('Error section DataBase or option MySQLPort in config file')
-            mysql_port = '3306'
+            port = '5432'
             exit()
-        return mysql_port
+        return port
 
-    def DBName(self):
+    def User(self):
         try:
-            db_name = self.config.get('DataBase', 'DBName')
+            user = self.config.get('DataBase', 'User')
         except (configparser.NoOptionError, configparser.NoSectionError):
-            print('Error section DataBase or option DBName in config file')
-            db_name = 'blacklist'
+            print('Error section DataBase or option MySQLUser in config file')
+            user = 'User'
             exit()
-        return db_name
+        return user
+
+    def Password(self):
+        try:
+            pwd = self.config.get('DataBase', 'Password')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section DataBase or option Password in config file')
+            pwd = 'Password'
+            exit()
+        return pwd
 
     def LogRewrite(self):
         try:

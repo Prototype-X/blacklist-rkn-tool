@@ -16,147 +16,15 @@ import smtplib
 from email.mime.text import MIMEText
 import subprocess
 
-from peewee import Proxy, Model, CharField, TextField, DateField, DateTimeField, IntegerField, SqliteDatabase, \
-    MySQLDatabase, fn, IntegrityError
-
-import pymysql
 
 from zapretinfo import ZapretInfo
-from cfg_blrkn import Config
-
-database_proxy = Proxy()
-
-
-class Dump(Model):
-    param = CharField(primary_key=True, max_length=255, null=False)
-    value = TextField(null=False)
-
-    class Meta(object):
-        database = database_proxy
-
-
-class Item(Model):
-    content_id = IntegerField(null=False, index=True)
-    includeTime = DateTimeField(null=False)
-    urgencyType = IntegerField(null=False, default=0)
-    entryType = IntegerField(null=False)
-    blockType = TextField(null=False, default='default')
-    hashRecord = TextField(null=False)
-    decision_date = DateField(null=False)
-    decision_num = TextField(null=False)
-    decision_org = TextField(null=False)
-    date_added = DateTimeField(null=False)
-
-    class Meta(object):
-        database = database_proxy
-
-
-class IP(Model):
-    item = IntegerField(null=False, index=True)
-    ip = TextField(null=False)
-    mask = IntegerField(null=False, default=32)
-    date_added = DateTimeField(null=False)
-
-    class Meta(object):
-        database = database_proxy
-
-
-class Domain(Model):
-    item = IntegerField(null=False, index=True)
-    domain = TextField(null=False)
-    date_added = DateTimeField(null=False)
-
-    class Meta(object):
-        database = database_proxy
-
-
-class URL(Model):
-    item = IntegerField(null=False, index=True)
-    url = TextField(null=False)
-    date_added = DateTimeField(null=False)
-
-    class Meta(object):
-        database = database_proxy
-
-
-class History(Model):
-    requestCode = TextField(null=False)
-    date = DateTimeField(null=False)
-
-    class Meta(object):
-        database = database_proxy
+from config import Config
+from db import Dump, Item, IP, Domain, URL, History, init_db, fn
 
 
 def date_time_xml_to_db(date_time_xml):
     date_time_db = date_time_xml.replace('T', ' ')
     return date_time_db
-
-
-def init_dump_db(logger, cfg):
-    path_py = str(os.path.dirname(os.path.abspath(__file__)))
-    if cfg.MySQL():
-        login = cfg.MySQLUser()
-        password = cfg.MySQLPassword()
-        host = cfg.MySQLHost()
-        port = cfg.MySQLPort()
-        db = pymysql.connect(host=host, port=port, user=login, passwd=password)
-        cursor = db.cursor()
-        check_db = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" + cfg.DBName() + "'"
-        cursor.execute(check_db)
-        if not cursor.fetchone():
-            create_db = "CREATE DATABASE IF NOT EXISTS `" + cfg.DBName() + \
-                        "` CHARACTER SET utf8 COLLATE utf8_unicode_ci"
-            cursor.execute(create_db)
-        blacklist_db = MySQLDatabase(cfg.DBName(), host=host, port=port, user=login, passwd=password)
-        logger.info('Check database: MySQL Ok')
-    else:
-        blacklist_db = SqliteDatabase(path_py + '/' + cfg.DBName() + '.db', threadlocals=True)
-        logger.info('Check database: SQLite Ok')
-
-    database_proxy.initialize(blacklist_db)
-    database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
-
-    try:
-        Dump.create(param='lastDumpDate', value='1325376000')
-    except IntegrityError:
-        pass
-
-    try:
-        Dump.create(param='lastDumpDateUrgently', value='1325376000')
-    except IntegrityError:
-        pass
-
-    try:
-        Dump.create(param='lastAction', value='getLastDumpDate')
-    except IntegrityError:
-        pass
-
-    try:
-        Dump.create(param='lastResult', value='default')
-    except IntegrityError:
-        pass
-
-    try:
-        Dump.create(param='lastCode', value='default')
-    except IntegrityError:
-        pass
-
-    try:
-        Dump.create(param='dumpFormatVersion', value='2.2')
-    except IntegrityError:
-        pass
-
-    try:
-        Dump.create(param='webServiceVersion', value='3')
-    except IntegrityError:
-        pass
-
-    try:
-        Dump.create(param='docVersion', value='4')
-    except IntegrityError:
-        pass
-
-    return True
 
 
 def check_service_upd(logger, update_dump):
@@ -810,7 +678,7 @@ def main():
 
     logger.info('Starting script.')
 
-    init_dump_db(logger, cfg)
+    init_db(logger, cfg)
 
     if ip_print:
         ip_show()
