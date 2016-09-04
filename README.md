@@ -50,7 +50,7 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
 **bl-rkn.cfg**
 
     [DataBase]
-    Type = 0 # 0 - SQlite, 1 - MySQL, 2 - PostgreSQL
+    Type = 0 # 0 - SQLite, 1 - MySQL, 2 - PostgreSQL
     Name = blacklist # имя БД, для SQlite имя файла DBName.db
     Host = localhost
     Port = 5432

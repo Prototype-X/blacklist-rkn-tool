@@ -79,10 +79,10 @@ def init_db(logger, cfg):
         port = cfg.Port()
         db = pymysql.connect(host=host, port=port, user=login, passwd=password)
         cursor = db.cursor()
-        check_db = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" + cfg.DBName() + "'"
+        check_db = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" + cfg.Name() + "'"
         cursor.execute(check_db)
         if not cursor.fetchone():
-            create_db = "CREATE DATABASE IF NOT EXISTS `" + cfg.DBName() + \
+            create_db = "CREATE DATABASE IF NOT EXISTS `" + cfg.Name() + \
                         "` CHARACTER SET utf8 COLLATE utf8_unicode_ci"
             cursor.execute(create_db)
         blacklist_db = MySQLDatabase(cfg.Name(), host=host, port=port, user=login, passwd=password)
@@ -91,7 +91,7 @@ def init_db(logger, cfg):
         import psycopg2
 
     else:
-        blacklist_db = SqliteDatabase(path_py + '/' + cfg.DBName() + '.db', threadlocals=True)
+        blacklist_db = SqliteDatabase(path_py + '/' + cfg.Name() + '.db', threadlocals=True)
         logger.info('Check database: SQLite Ok')
 
     database_proxy.initialize(blacklist_db)
