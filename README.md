@@ -50,12 +50,12 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
 **bl-rkn.cfg**
 
     [DataBase]
-    MySQL = 1 # использовать MySQL, 0 - SQlite
-    MySQLUser = user
-    MySQLPassword = password
-    MySQLHost = localhost
-    MySQLPort = 3306
-    DBName = blacklist # имя БД, для SQlite имя файла DBName.db
+    Type = 0 # 0 - SQlite, 1 - MySQL, 2 - PostgreSQL
+    Name = blacklist # имя БД, для SQlite имя файла DBName.db
+    Host = localhost
+    Port = 5432
+    User = user
+    Password = password
 
     [Log]
     LogRewrite = 1 # перезаписывать log файл при каждом запуске
