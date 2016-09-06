@@ -21,13 +21,15 @@ from zapretinfo import ZapretInfo
 from config import Config
 from db import Dump, Item, IP, Domain, URL, History, init_db, fn
 
+logger = logging.getLogger(__name__)
+
 
 def date_time_xml_to_db(date_time_xml):
     date_time_db = date_time_xml.replace('T', ' ')
     return date_time_db
 
 
-def check_service_upd(logger, update_dump):
+def check_service_upd(update_dump):
     msg = ''
     logger.info('Current versions: webservice: %s, dump: %s, doc: %s',
                 Dump.get(Dump.param == 'webServiceVersion').value,
@@ -54,7 +56,7 @@ def check_service_upd(logger, update_dump):
     return msg
 
 
-def check_new_dump(logger, update_dump):
+def check_new_dump(update_dump):
     logger.info('Check if dump.xml has updates since last sync.')
     last_date_dump = max(update_dump.lastDumpDate // 1000, update_dump.lastDumpDateUrgently // 1000)
     current_date_dump = max(int(Dump.get(Dump.param == 'lastDumpDate').value),
@@ -82,7 +84,7 @@ def check_new_dump(logger, update_dump):
         return False
 
 
-def send_request(logger, session, xml_file, p7s_file, version='2.1'):
+def send_request(session, xml_file, p7s_file, version='2.1'):
     logger.info('Sending request.')
     request = session.sendRequest(xml_file, p7s_file, version)
     logger.info('Checking request status.')
@@ -102,7 +104,7 @@ def send_request(logger, session, xml_file, p7s_file, version='2.1'):
         return False
 
 
-def get_request(logger, session, code, cfg):
+def get_request(session, code, cfg):
     path_py = str(os.path.dirname(os.path.abspath(__file__)))
     logger.info('Waiting for a 90 sec.')
     time.sleep(90)
@@ -150,7 +152,7 @@ def get_request(logger, session, code, cfg):
     return False
 
 
-def parse_dump(logger):
+def parse_dump():
     path_py = str(os.path.dirname(os.path.abspath(__file__)))
     if os.path.exists(path_py + '/dump.xml'):
         logger.info('dump.xml already exists.')
@@ -555,7 +557,7 @@ def gen_report(**data):
     return message
 
 
-def gen_request(logger, cfg):
+def gen_request(cfg):
     logger.info('Generate request file %s', cfg.XMLPathFName())
     dt = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     request_xml = '<?xml version="1.0" encoding="windows-1251"?>\n'
@@ -571,7 +573,7 @@ def gen_request(logger, cfg):
     return True
 
 
-def sign_request(logger, cfg):
+def sign_request(cfg):
     logger.info('Sign file %s', cfg.XMLPathFName())
     subprocess.call("sudo openssl smime -engine pkcs11_gost -sign -in " + cfg.XMLPathFName() + " -out " +
                     cfg.P7SPathFName() + " -outform der -noverify -binary -signer " + cfg.PEMPathFName() +
@@ -579,7 +581,45 @@ def sign_request(logger, cfg):
     return True
 
 
-def notify(logger, message, cfg, subject=''):
+class Notifier(object):
+    def __init__(self, cfg):
+        self.from_address = cfg.MailFrom()
+        self.to_address = cfg.MailTo()
+        self.auth = cfg.MailAuth()
+        self.starttls = cfg.StartTLS()
+        self.server_address = cfg.MailServer()
+        self.server_port = cfg.MailPort()
+        self.subject = cfg.MailSubject()
+        if self.auth:
+            self.login = cfg.MailLogin()
+            self.password = cfg.MailPassword()
+
+    def send_mail(self, message, subject=''):
+        if subject:
+            self.subject = subject
+        msg = MIMEText(message)
+        msg['Subject'] = self.subject
+        msg['From'] = self.from_address
+        msg['To'] = self.to_address
+        if self.auth:
+            server = smtplib.SMTP(self.server_address, self.server_port)
+            server.ehlo()
+            if self.starttls:
+                server.starttls()
+            server.login(self.login, self.password)
+            server.sendmail(self.from_address, self.to_address, msg.as_string())
+            server.quit()
+        else:
+            server = smtplib.SMTP(self.server_address, self.server_port)
+            server.ehlo()
+            server.connect()
+            server.sendmail(self.from_address, self.to_address, msg.as_string())
+            server.quit()
+        logger.info('Send email from %s to %s', self.from_address, self.to_address)
+        logger.info('%s', message)
+
+
+def notify(message, cfg, subject=''):
     from_address = cfg.MailFrom()
     to_address = cfg.MailTo()
     auth = cfg.MailAuth()
@@ -674,7 +714,7 @@ def main():
 
     logging.basicConfig(filename=cfg.LogPathFName(), filemode=filemode,
                         format=u'%(asctime)s  %(message)s', level=logging.INFO)
-    logger = logging.getLogger(__name__)
+    # logger = logging.getLogger(__name__)
 
     logger.info('Starting script.')
 
