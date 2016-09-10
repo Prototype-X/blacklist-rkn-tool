@@ -654,6 +654,118 @@ def notify(message, cfg, subject=''):
     return True
 
 
+class Reporter(object):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def statistics_show(**data):
+        domain_count = Domain.select(fn.Count(fn.Distinct(Domain.domain))).scalar()
+        url_count = URL.select(fn.Count(fn.Distinct(URL.url))).scalar()
+        ip_count = IP.select(fn.Count(fn.Distinct(IP.ip))).scalar()
+        id_count = Item.select(fn.Count(fn.Distinct(Item.content_id))).scalar()
+
+        date_time = datetime.fromtimestamp(int(Dump.get(Dump.param == 'lastDumpDate')
+                                               .value)).strftime('%Y-%m-%d %H:%M:%S')
+
+        message = 'vigruzki.rkn.gov.ru update: ' + date_time + '\n'
+
+        url_inform_add = data.get('url_add')
+        if len(url_inform_add) > 0:
+            message += '\nURLs added: \n\n'
+            for url_a in url_inform_add:
+                message += url_a + '\n'
+
+        ip_inform_add = data.get('ip_add')
+        if len(ip_inform_add) > 0:
+            message += '\nIPs added: \n\n'
+            for ip_a in ip_inform_add:
+                message += ip_a + '\n'
+
+        sub_ip_inform_add = data.get('sub_ip_add')
+        if len(sub_ip_inform_add) > 0:
+            message += '\nSUBNETs added: \n\n'
+            for sub_ip_a in sub_ip_inform_add:
+                message += sub_ip_a + '\n'
+
+        domain_inform_add = data.get('domain_add')
+        if len(domain_inform_add) > 0:
+            message += '\nDOMAINs added: \n\n'
+            for domain_a in domain_inform_add:
+                message += domain_a + '\n'
+
+        url_inform_del = data.get('url_del')
+        if len(url_inform_del) > 0:
+            message += '\nURLs deleted: \n\n'
+            for url_d in url_inform_del:
+                message += url_d + '\n'
+
+        ip_inform_del = data.get('ip_del')
+        if len(ip_inform_del) > 0:
+            message += '\nIPs deleted: \n\n'
+            for ip_d in ip_inform_del:
+                message += ip_d + '\n'
+
+        sub_ip_inform_del = data.get('sub_ip_del')
+        if len(sub_ip_inform_del) > 0:
+            message += '\nSUBNETs deleted: \n\n'
+            for sub_ip_d in sub_ip_inform_del:
+                message += sub_ip_d + '\n'
+
+        domain_inform_del = data.get('domain_del')
+        if len(domain_inform_del) > 0:
+            message += '\nDOMAINs deleted: \n\n'
+            for domain_d in domain_inform_del:
+                message += domain_d + '\n'
+
+        message += '\nURLs count: ' + str(url_count) + '\n'
+        message += 'IPs count: ' + str(ip_count) + '\n'
+        message += 'DOMAINs count: ' + str(domain_count) + '\n'
+        message += 'Item count: ' + str(id_count) + '\n'
+
+        id_inform_add = data.get('id_add')
+        if len(id_inform_add) > 0:
+            message += 'Items added: ' + str(len(id_inform_add)) + '\n'
+
+        id_inform_del = data.get('id_del')
+        if len(id_inform_del) > 0:
+            message += 'Items deleted: ' + str(len(id_inform_del)) + '\n'
+
+        return message
+
+    @staticmethod
+    def domain_show():
+        domain_sql = Domain.select(fn.Distinct(Domain.domain))
+        for domain_row in domain_sql:
+            print(domain_row.domain)
+
+    @staticmethod
+    def ip_show():
+        ip_sql = IP.select(fn.Distinct(IP.ip))
+        for ip_row in ip_sql:
+            if ip_row.mask < 32:
+                print(ip_row.ip + '/' + str(ip_row.mask))
+            else:
+                print(ip_row.ip)
+
+    @staticmethod
+    def url_show():
+        url_sql = URL.select(fn.Distinct(URL.url))
+        for url_row in url_sql:
+            print(url_row.url)
+
+        item_sql = Item.select()
+        for item_row in item_sql:
+            if item_row.blockType == 'domain':
+                print('http://' + Domain.get(Domain.item == item_row.content_id).domain)
+
+    @staticmethod
+    def history_show():
+        history_sql = History.select()
+        for history_row in history_sql:
+            print(history_row.date, history_row.requestCode)
+
+
 def domain_show():
     domain_sql = Domain.select(fn.Distinct(Domain.domain))
     for domain_row in domain_sql:
@@ -731,27 +843,27 @@ def main():
     else:
         session = ZapretInfo()
         upd_dump = session.getLastDumpDateEx()
-        srv_msg = check_service_upd(logger, upd_dump)
+        srv_msg = check_service_upd(upd_dump)
         if srv_msg:
             if cfg.Notify():
-                notify(logger, srv_msg, cfg, subject='vigruzki.rkn.gov.ru service update')
-        if check_new_dump(logger, upd_dump):
+                notify(srv_msg, cfg, subject='vigruzki.rkn.gov.ru service update')
+        if check_new_dump(upd_dump):
             if cfg.GenRequest():
-                gen_request(logger, cfg)
-                sign_request(logger, cfg)
-            code = send_request(logger, session, cfg.XMLPathFName(), cfg.P7SPathFName(), '2.2')
+                gen_request(cfg)
+                sign_request(cfg)
+            code = send_request(session, cfg.XMLPathFName(), cfg.P7SPathFName(), '2.2')
             if code:
-                if get_request(logger, session, code, cfg):
-                    result_bool, message = parse_dump(logger)
+                if get_request(session, code, cfg):
+                    result_bool, message = parse_dump()
                     if result_bool == 1:
                         if cfg.Notify():
-                            notify(logger, message, cfg)
+                            notify(message, cfg)
                     elif result_bool == 2:
                         logger.info('No updates')
                     elif result_bool == 0:
                         if cfg.Notify():
                             message = 'Houston, we have a problem'
-                            notify(logger, message, cfg)
+                            notify(message, cfg)
                         logger.info('parse_dump error')
     logger.info('Script stopped.')
 
