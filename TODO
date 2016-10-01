@@ -9,8 +9,8 @@ todo добавить аргумент коммандной строки  blockT
 todo добавить поддержку PostgreSQL
 
 todo class DB - для работы с DB
-todo class Dump - для получения данных выгрузки и парсинга в БД
+todo class Core - для получения данных выгрузки и парсинга в БД +
 todo class Notifier - для уведомления об изменении в реестре +
-todo class Reporter - генератор отчетов, для отправки через Notifier и вывод в stdout данных из DB
+todo class Reporter - генератор отчетов, для отправки через Notifier и вывод в stdout данных из DB +
 todo class Config - конфигурация скрипта +
 todo class CLI - работает с аргументами коммандной строки

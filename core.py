@@ -472,8 +472,7 @@ class Core:
                            'id_del': id_inform_del_set, 'sub_ip_del': sub_ip_inform_del_set, 'url_add': url_inform_add_set,
                            'ip_add': ip_inform_add_set, 'domain_add': domain_inform_add_set, 'id_add': id_inform_add_set,
                            'sub_ip_add': sub_ip_inform_add_set}
-            msg = gen_report(**report_data)
-            # print(msg)
-            return 1, msg
+
+            return 1, report_data
         else:
-            return 0, str()
+            return 0, dict()
