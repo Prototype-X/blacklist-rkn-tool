@@ -130,7 +130,7 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
 
 * Создать нового пользователя: 
 
-      CREATE USER blrkn WITH PASSWORD 'passwd' CREATEDB;
+         CREATE USER blrkn WITH PASSWORD 'passwd' CREATEDB;
 
 ####Обзор аналогов:####
 
