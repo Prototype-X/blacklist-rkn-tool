@@ -81,6 +81,8 @@ def init_db(logger, cfg):
 
     if type_db == 0:
         blacklist_db = SqliteDatabase(path_py + '/' + name_db + '.db', threadlocals=True)
+        database_proxy.initialize(blacklist_db)
+        database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
         init_dump_tbl()
         logger.info('Check database: SQLite Ok')
 
@@ -95,9 +97,12 @@ def init_db(logger, cfg):
             create_db = "CREATE DATABASE IF NOT EXISTS `" + name_db + \
                         "` CHARACTER SET utf8 COLLATE utf8_unicode_ci"
             cursor.execute(create_db)
-            init_dump_tbl()
+
         cursor.close()
         blacklist_db = MySQLDatabase(name_db, host=host, port=port, user=login, passwd=password)
+        database_proxy.initialize(blacklist_db)
+        database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
+        init_dump_tbl()
         logger.info('Check database: MySQL Ok')
 
     elif type_db == 2:
@@ -119,14 +124,14 @@ def init_db(logger, cfg):
             init_dump_tbl()
         cursor.close()
         blacklist_db = PostgresqlDatabase(name_db, host=host, port=port, user=login, password=password)
+        database_proxy.initialize(blacklist_db)
+        database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
+
         logger.info('Check database: PostgreSQL Ok')
 
     else:
         logger.info('Wrong type DB. Check configuration.')
         exit()
-
-    database_proxy.initialize(blacklist_db)
-    database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
 
 
 def init_dump_tbl():
