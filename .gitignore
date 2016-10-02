@@ -10,4 +10,4 @@ sce/
 *.xml.sig
 *.db
 *.tar.gz
-*.txt
+postgres_init.txt

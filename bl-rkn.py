@@ -164,19 +164,55 @@ class Reporter(object):
         return message
 
     @staticmethod
-    def domain_show():
-        domain_sql = Domain.select(fn.Distinct(Domain.domain))
-        for domain_row in domain_sql:
-            print(domain_row.domain)
+    def domain_show(bt):
+        if bt == 'all':
+            domain_sql = Domain.select(fn.Distinct(Domain.domain))
+            for domain_row in domain_sql:
+                print(domain_row.domain)
+        elif bt == 'domain':
+            domain_unique = set()
+            item_sql = Item.select(Item.content_id, Item.blockType).where(Item.blockType == 'domain')
+            for item_row in item_sql:
+                domain_sql = Domain.select().where(Domain.item == item_row.content_id)
+                for domain_row in domain_sql:
+                    domain_unique.add(domain_row.domain)
+            for domain in domain_unique:
+                print(domain)
+        elif bt == 'domain-mask':
+            domain_unique = set()
+            item_sql = Item.select(Item.content_id, Item.blockType).where(Item.blockType == 'domain-mask')
+            for item_row in item_sql:
+                domain_sql = Domain.select().where(Domain.item == item_row.content_id)
+                for domain_row in domain_sql:
+                    domain_unique.add(domain_row.domain)
+            for domain in domain_unique:
+                print(domain)
+        else:
+            print("Invalid --bt " + bt)
 
     @staticmethod
-    def ip_show():
-        ip_sql = IP.select(fn.Distinct(IP.ip))
-        for ip_row in ip_sql:
-            if ip_row.mask < 32:
-                print(ip_row.ip + '/' + str(ip_row.mask))
-            else:
-                print(ip_row.ip)
+    def ip_show(bt):
+        if bt == 'all':
+            ip_sql = IP.select(fn.Distinct(IP.ip))
+            for ip_row in ip_sql:
+                if ip_row.mask < 32:
+                    print(ip_row.ip + '/' + str(ip_row.mask))
+                else:
+                    print(ip_row.ip)
+        elif bt == 'ip':
+            ip_unique = set()
+            item_sql = Item.select(Item.content_id, Item.blockType).where(Item.blockType == 'ip')
+            for item_row in item_sql:
+                ip_sql = IP.select().where(IP.item == item_row.content_id)
+                for ip_row in ip_sql:
+                    if ip_row.mask < 32:
+                        ip_unique.add(ip_row.ip + '/' + str(ip_row.mask))
+                    else:
+                        ip_unique.add(ip_row.ip)
+            for ip in ip_unique:
+                print(ip)
+        else:
+            print("Invalid --bt " + bt)
 
     @staticmethod
     def url_show():
@@ -184,10 +220,10 @@ class Reporter(object):
         for url_row in url_sql:
             print(url_row.url)
 
-        item_sql = Item.select()
-        for item_row in item_sql:
-            if item_row.blockType == 'domain':
-                print('http://' + Domain.get(Domain.item == item_row.content_id).domain)
+        # item_sql = Item.select(Item.content_id, Item.blockType).where((Item.blockType == 'domain') |
+        #                                                               (Item.blockType == 'domain-mask'))
+        # for item_row in item_sql:
+        #     print('http://' + Domain.get(Domain.item == item_row.content_id).domain)
 
     @staticmethod
     def history_show():
@@ -203,13 +239,16 @@ def main():
     parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip list show")
     parser.add_argument("--domain", action="store_true", required=False, default=False, help="domain list show")
     parser.add_argument("--history", action="store_true", required=False, default=False, help="history list show")
-    parser.add_argument("-v", "--version", action='version', version='version 1.2.5', help="show version")
+    parser.add_argument('--bt', action='store', default='all',
+                        choices=['default', 'ip', 'domain', 'domain-mask', 'all'], help='blockType')
+    parser.add_argument("-v", "--version", action='version', version='version 1.3.0', help="show version")
     args = parser.parse_args()
 
     ip_print = args.ip
     url_print = args.url
     domain_print = args.domain
     history_print = args.history
+    block_type = args.bt
 
     cfg = Config()
     rept = Reporter()
@@ -231,11 +270,11 @@ def main():
     init_db(logger, cfg)
 
     if ip_print:
-        rept.ip_show()
+        rept.ip_show(block_type)
     elif url_print:
         rept.url_show()
     elif domain_print:
-        rept.domain_show()
+        rept.domain_show(block_type)
     elif history_print:
         rept.history_show()
     else:
