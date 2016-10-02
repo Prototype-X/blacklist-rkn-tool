@@ -63,7 +63,7 @@ class Config(object):
 
     def Type(self):
         try:
-            dbtype = self.config.getboolean('DataBase', 'Type')
+            dbtype = self.config.getint('DataBase', 'Type')
         except (configparser.NoOptionError, configparser.NoSectionError):
             print('Error section DataBase or option Type in config file')
             dbtype = 0

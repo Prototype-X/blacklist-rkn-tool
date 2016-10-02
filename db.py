@@ -71,32 +71,65 @@ class History(Model):
 
 def init_db(logger, cfg):
     path_py = str(os.path.dirname(os.path.abspath(__file__)))
-    if int(cfg.Type()) == 1:
+    login = cfg.User()
+    password = cfg.Password()
+    host = cfg.Host()
+    port = cfg.Port()
+    name_db = cfg.Name()
+    type_db = int(cfg.Type())
+    blacklist_db = None
+
+    if type_db == 0:
+        blacklist_db = SqliteDatabase(path_py + '/' + name_db + '.db', threadlocals=True)
+        init_dump_tbl()
+        logger.info('Check database: SQLite Ok')
+
+    elif type_db == 1:
         import pymysql
-        login = cfg.User()
-        password = cfg.Password()
-        host = cfg.Host()
-        port = cfg.Port()
+
         db = pymysql.connect(host=host, port=port, user=login, passwd=password)
         cursor = db.cursor()
-        check_db = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" + cfg.Name() + "'"
+        check_db = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" + name_db + "'"
         cursor.execute(check_db)
         if not cursor.fetchone():
-            create_db = "CREATE DATABASE IF NOT EXISTS `" + cfg.Name() + \
+            create_db = "CREATE DATABASE IF NOT EXISTS `" + name_db + \
                         "` CHARACTER SET utf8 COLLATE utf8_unicode_ci"
             cursor.execute(create_db)
-        blacklist_db = MySQLDatabase(cfg.Name(), host=host, port=port, user=login, passwd=password)
+            init_dump_tbl()
+        cursor.close()
+        blacklist_db = MySQLDatabase(name_db, host=host, port=port, user=login, passwd=password)
         logger.info('Check database: MySQL Ok')
-    elif int(cfg.Type()) == 2:
+
+    elif type_db == 2:
         import psycopg2
+        from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
+        db = psycopg2.connect(dbname='postgres', host=host, port=port, user=login, password=password)
+        db.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        cursor = db.cursor()
+        check_db = "SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower('" + name_db + "')"
+        cursor.execute(check_db)
+        if not cursor.fetchone():
+            create_db = "CREATE DATABASE " + name_db + " WITH ENCODING = 'UTF8' " \
+                                                       "LC_COLLATE = 'ru_RU.UTF-8' " \
+                                                       "LC_CTYPE = 'ru_RU.UTF-8'"
+            cursor.execute(create_db)
+            privileges_set = "GRANT ALL PRIVILEGES ON DATABASE " + name_db + " TO " + login
+            cursor.execute(privileges_set)
+            init_dump_tbl()
+        cursor.close()
+        blacklist_db = PostgresqlDatabase(name_db, host=host, port=port, user=login, password=password)
+        logger.info('Check database: PostgreSQL Ok')
 
     else:
-        blacklist_db = SqliteDatabase(path_py + '/' + cfg.Name() + '.db', threadlocals=True)
-        logger.info('Check database: SQLite Ok')
+        logger.info('Wrong type DB. Check configuration.')
+        exit()
 
     database_proxy.initialize(blacklist_db)
     database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
 
+
+def init_dump_tbl():
     try:
         Dump.create(param='lastDumpDate', value='1325376000')
     except IntegrityError:
@@ -137,4 +170,3 @@ def init_db(logger, cfg):
     except IntegrityError:
         pass
 
-    return True

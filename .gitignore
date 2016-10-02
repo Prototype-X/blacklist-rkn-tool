@@ -10,3 +10,4 @@ sce/
 *.xml.sig
 *.db
 *.tar.gz
+*.txt

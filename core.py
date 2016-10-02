@@ -247,28 +247,28 @@ class Core:
                                         entryType=entry_type, blockType=block_type, hashRecord=hash_value,
                                         decision_date=decision_date, decision_num=decision_number,
                                         decision_org=decision_org, date_added=datetime.now()
-                                        .strftime("%Y-%m-%d %H-%M-%S"))
+                                        .strftime("%Y-%m-%d %H:%M:%S"))
                         if data_xml.tag == 'url':
                             url = data_xml.text
                             url_inform_add_set.add(url)
                             URL.create(item=content_id, url=url, date_added=datetime.now()
-                                       .strftime("%Y-%m-%d %H-%M-%S"))
+                                       .strftime("%Y-%m-%d %H:%M:%S"))
                         if data_xml.tag == 'domain':
                             domain = data_xml.text
                             domain_inform_add_set.add(domain)
                             Domain.create(item=content_id, domain=domain,
-                                          date_added=datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
+                                          date_added=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                         if data_xml.tag == 'ip':
                             ip = data_xml.text
                             ip_inform_add_set.add(ip)
-                            IP.create(item=content_id, ip=ip, date_added=datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
+                            IP.create(item=content_id, ip=ip, date_added=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                         if data_xml.tag == 'ipSubnet':
                             net = data_xml.text.split('/')
                             sub_ip_inform_add_set.add(data_xml.text)
                             ip = net[0]
                             mask = net[1]
                             IP.create(item=content_id, ip=ip, mask=mask,
-                                      date_added=datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
+                                      date_added=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
             url_db_set = set()
             url_xml_set = set()
@@ -378,7 +378,7 @@ class Core:
                             url_inform_add_set.update(add_url_set)
                             for add_url in add_url_set:
                                 URL.create(item=content_id, url=add_url,
-                                           date_added=datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
+                                           date_added=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                     url_db_set.clear()
                     url_xml_set.clear()
 
@@ -400,7 +400,7 @@ class Core:
                             domain_inform_add_set.update(add_domain_set)
                             for add_domain in add_domain_set:
                                 Domain.create(item=content_id, domain=add_domain,
-                                              date_added=datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
+                                              date_added=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                     domain_db_set.clear()
                     domain_xml_set.clear()
 
@@ -422,7 +422,7 @@ class Core:
                             ip_inform_add_set.update(add_ip_set)
                             for add_ip in add_ip_set:
                                 IP.create(item=content_id, ip=add_ip,
-                                          date_added=datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
+                                          date_added=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                     ip_db_set.clear()
                     ip_xml_set.clear()
 
@@ -450,7 +450,7 @@ class Core:
                                 add_ip = add_subnet[0]
                                 add_mask = add_subnet[1]
                                 IP.create(item=content_id, ip=add_ip, mask=add_mask,
-                                          date_added=datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
+                                          date_added=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                     sub_ip_db_set.clear()
                     sub_ip_xml_set.clear()
 
