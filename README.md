@@ -104,33 +104,33 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
 
 * Список URL
     
-      bl-rkn.py --url
+        bl-rkn.py --url
 
 * Список доменов, где блокировка должна осуществлятся по имени домена т.е. blockType = domain
 
-      bl-rkn.py --domain --bt domain
+        bl-rkn.py --domain --bt domain
 
 * Список, где блокировка должна осуществлятся по маске домена т.е. blockType = domain-mask
 
-      bl-rkn.py --domain --bt domain-mask
+        bl-rkn.py --domain --bt domain-mask
 
 * Список IP, где блокировка должна осуществлятся по IP адресам т.е. blockType = ip
 
-      bl-rkn.py --ip --bt ip
+        bl-rkn.py --ip --bt ip
 
 ####Для PostgreSQL:####
 
 * Запуск CLI:
 
-      sudo -u postgres psql
+        sudo -u postgres psql
     
 * Установить пароль для пользователя postgres:
     
-       postgres=# \password postgres
+        postgres=# \password postgres
 
 * Создать нового пользователя: 
 
-       CREATE USER blrkn WITH PASSWORD 'passwd' CREATEDB;
+        CREATE USER blrkn WITH PASSWORD 'passwd' CREATEDB;
 
 ####Обзор аналогов:####
 
