@@ -252,9 +252,9 @@ def main():
 
     cfg = Config()
     rept = Reporter()
-    notice = Notifier(cfg)
-    dump = Core()
-    signer = Rutoken(cfg)
+
+    if cfg.Notify():
+        notice = Notifier(cfg)
 
     if cfg.LogRewrite():
         filemode = 'w'
@@ -278,12 +278,14 @@ def main():
     elif history_print:
         rept.history_show()
     else:
+        dump = Core()
         srv_msg = dump.check_service_upd()
         if srv_msg:
             if cfg.Notify():
                 notice.send_mail(srv_msg, subject='vigruzki.rkn.gov.ru service update')
         if dump.check_new_dump():
             if cfg.GenRequest():
+                signer = Rutoken(cfg)
                 signer.gen_request()
                 signer.sign_request()
             code = dump.send_request(cfg.XMLPathFName(), cfg.P7SPathFName(), '2.2')
