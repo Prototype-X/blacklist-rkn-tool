@@ -5,11 +5,12 @@ todo поиск в базе + аргументы командной строки
 todo обработка исключений и прочих нестандартных ситуации
 todo openssl path добавить параметр
 todo сделать вывод последних изменений ip, url, domain
-todo добавить аргумент коммандной строки  blockType
+todo добавить аргумент коммандной строки  blockType +
 todo добавить поддержку PostgreSQL +
 todo использовать в таблицах Foreign keys
+todo миграция на другую библиотеку SOAP например: async-suds, suds-py3
 
-todo class DB - для работы с DB
+todo class DB - для работы с DB +
 todo class Core - для получения данных выгрузки и парсинга в БД +
 todo class Notifier - для уведомления об изменении в реестре +
 todo class Reporter - генератор отчетов, для отправки через Notifier и вывод в stdout данных из DB +
