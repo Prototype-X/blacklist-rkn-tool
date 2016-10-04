@@ -165,7 +165,7 @@ class Reporter(object):
 
     @staticmethod
     def domain_show(bt):
-        if bt == 'all':
+        if bt == 'ignore':
             domain_sql = Domain.select(fn.Distinct(Domain.domain))
             for domain_row in domain_sql:
                 print(domain_row.domain)
@@ -192,7 +192,7 @@ class Reporter(object):
 
     @staticmethod
     def ip_show(bt):
-        if bt == 'all':
+        if bt == 'ignore':
             ip_sql = IP.select(fn.Distinct(IP.ip))
             for ip_row in ip_sql:
                 if ip_row.mask < 32:
@@ -239,8 +239,8 @@ def main():
     parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip list show")
     parser.add_argument("--domain", action="store_true", required=False, default=False, help="domain list show")
     parser.add_argument("--history", action="store_true", required=False, default=False, help="history list show")
-    parser.add_argument('--bt', action='store', default='all',
-                        choices=['default', 'ip', 'domain', 'domain-mask', 'all'], help='blockType')
+    parser.add_argument('--bt', action='store', default='ignore',
+                        choices=['default', 'ip', 'domain', 'domain-mask'], help='blockType')
     parser.add_argument("-v", "--version", action='version', version='version 1.3.0', help="show version")
     args = parser.parse_args()
 
