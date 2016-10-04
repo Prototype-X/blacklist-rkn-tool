@@ -91,15 +91,15 @@ Python версии 3.4.0 и выше
     To = tech@mail.ru # адрес получателя
 
     [Request]
-    GenerateRequest = 0 # генерировать запрос .xml и .xml.p7s автоматически
-    OperatorName = ООО "Телеком" # параметры необходимые для создания файла подписи
-    inn = 1234567890
-    ogrn = 1234567890123
-    email = support@mail.ru
+    GenerateRequest = 0 # 1 - генерировать запрос .xml и .xml.p7s автоматически нужен usb ключ Rutoken
+    OperatorName = ООО "Телеком" # параметры необходимые для создания файла подписи актуально,
+    inn = 1234567890             # если GenerateRequest = 1
+    ogrn = 1234567890123         #
+    email = support@mail.ru      #
     XMLPathFName = /opt/bl-rkn/request.xml # путь и имя файла запроса
     P7SPathFName = /opt/bl-rkn/request.xml.p7s # путь и имя файла подписи
-    PEMPathFName = /opt/bl-rkn/cert.pem # сертификат подписи
-    ID = 12345006000000007089123456789001 # id ключа в rutoken
+    PEMPathFName = /opt/bl-rkn/cert.pem # сертификат подписи, актуально если GenerateRequest = 1
+    ID = 12345006000000007089123456789001 # id ключа в rutoken, актуально если GenerateRequest = 1
 
     [History]
     HistoryCount = 0 # не используется
