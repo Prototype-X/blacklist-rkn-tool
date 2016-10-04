@@ -789,7 +789,7 @@ def main():
     parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip list show")
     parser.add_argument("--domain", action="store_true", required=False, default=False, help="domain list show")
     parser.add_argument("--history", action="store_true", required=False, default=False, help="history list show")
-    parser.add_argument("-v", "--version", action='version', version='version 1.2.5', help="show version")
+    parser.add_argument("-v", "--version", action='version', version='version 1.2.6', help="show version")
     args = parser.parse_args()
 
     ip_print = args.ip
