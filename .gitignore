@@ -11,3 +11,4 @@ sce/
 *.db
 *.tar.gz
 postgres_init.txt
+db_foreign_keys.py
