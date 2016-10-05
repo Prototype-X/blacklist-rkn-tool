@@ -9,6 +9,7 @@ todo добавить аргумент коммандной строки  blockT
 todo добавить поддержку PostgreSQL +
 todo использовать в таблицах Foreign keys +
 todo миграция на другую библиотеку SOAP например: async-suds, suds-py3
+todo за год дамп увеличился в три раза, в один поток очень медленно парсит дамп, решение async и multiprocessing
 
 todo class DB - для работы с DB +
 todo class Core - для получения данных выгрузки и парсинга в БД +
