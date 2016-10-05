@@ -29,8 +29,6 @@ Python версии 3.4.0 и выше
 2. chmod a+x /opt/blacklist-rkn-tool/bl-rkn.py
 3. Установите пакеты:
 
-        pip3 install -r requirements.txt
-        OR
         pip3 install peewee lxml suds-jurko
     
     Для работы достаточно установить один Database Adapter, для типа БД который будет использоваться (SQLite установлен по умолчанию):
@@ -38,7 +36,11 @@ Python версии 3.4.0 и выше
         pip3 install psycopg2   #для PostgreSQL
         OR
         pip3 install pymysql    #для MySQL
-
+    
+    Установить все пакеты:
+        
+        pip3 install -r requirements.txt
+    
 4. Запустите скрипт, затем отредактируйте **bl-rkn.cfg**
 5. Настройте запуск по cron
 
