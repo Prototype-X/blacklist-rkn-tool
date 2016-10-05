@@ -268,6 +268,8 @@ def main():
     logger.info('Starting script.')
 
     init_db(logger, cfg)
+    # dump = Core()
+    # dump.parse_dump()
 
     if ip_print:
         rept.ip_show(block_type)

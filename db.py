@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 __author__ = 'maximus'
 
-from peewee import Proxy, Model, CharField, TextField, DateField, DateTimeField, IntegerField, SqliteDatabase, \
-    MySQLDatabase, PostgresqlDatabase, fn, IntegrityError
+from peewee import Proxy, Model, CharField, TextField, DateField, DateTimeField, IntegerField, BigIntegerField, \
+                   SqliteDatabase, MySQLDatabase, PostgresqlDatabase, ForeignKeyField, fn
 import os
 
 database_proxy = Proxy()
@@ -18,7 +18,7 @@ class Dump(Model):
 
 
 class Item(Model):
-    content_id = IntegerField(null=False, index=True)
+    content_id = BigIntegerField(null=False, index=True, unique=True)
     includeTime = DateTimeField(null=False)
     urgencyType = IntegerField(null=False, default=0)
     entryType = IntegerField(null=False)
@@ -34,7 +34,7 @@ class Item(Model):
 
 
 class IP(Model):
-    item = IntegerField(null=False, index=True)
+    item = ForeignKeyField(Item, to_field=Item.content_id, on_delete='CASCADE', on_update='CASCADE', index=True)
     ip = TextField(null=False)
     mask = IntegerField(null=False, default=32)
     date_added = DateTimeField(null=False)
@@ -44,7 +44,7 @@ class IP(Model):
 
 
 class Domain(Model):
-    item = IntegerField(null=False, index=True)
+    item = ForeignKeyField(Item, to_field=Item.content_id, on_delete='CASCADE', on_update='CASCADE', index=True)
     domain = TextField(null=False)
     date_added = DateTimeField(null=False)
 
@@ -53,7 +53,7 @@ class Domain(Model):
 
 
 class URL(Model):
-    item = IntegerField(null=False, index=True)
+    item = ForeignKeyField(Item, to_field=Item.content_id, on_delete='CASCADE', on_update='CASCADE', index=True)
     url = TextField(null=False)
     date_added = DateTimeField(null=False)
 
@@ -77,10 +77,10 @@ def init_db(logger, cfg):
     port = cfg.Port()
     name_db = cfg.Name()
     type_db = int(cfg.Type())
-    blacklist_db = None
+    # blacklist_db = None
 
     if type_db == 0:
-        blacklist_db = SqliteDatabase(path_py + '/' + name_db + '.db', threadlocals=True)
+        blacklist_db = SqliteDatabase(path_py + '/' + name_db + '.db', pragmas=(('foreign_keys', 1),))
         database_proxy.initialize(blacklist_db)
         database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
         init_dump_tbl()
@@ -93,7 +93,8 @@ def init_db(logger, cfg):
         cursor = db.cursor()
         check_db = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" + name_db + "'"
         cursor.execute(check_db)
-        if not cursor.fetchone():
+        db_exist_flag = cursor.fetchone()
+        if not db_exist_flag:
             create_db = "CREATE DATABASE IF NOT EXISTS `" + name_db + \
                         "` CHARACTER SET utf8 COLLATE utf8_unicode_ci"
             cursor.execute(create_db)
@@ -102,7 +103,8 @@ def init_db(logger, cfg):
         blacklist_db = MySQLDatabase(name_db, host=host, port=port, user=login, passwd=password)
         database_proxy.initialize(blacklist_db)
         database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
-        init_dump_tbl()
+        if not db_exist_flag:
+            init_dump_tbl()
         logger.info('Check database: MySQL Ok')
 
     elif type_db == 2:
@@ -114,19 +116,20 @@ def init_db(logger, cfg):
         cursor = db.cursor()
         check_db = "SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower('" + name_db + "')"
         cursor.execute(check_db)
-        if not cursor.fetchone():
+        db_exist_flag = cursor.fetchone()
+        if not db_exist_flag:
             create_db = "CREATE DATABASE " + name_db + " WITH ENCODING = 'UTF8' " \
                                                        "LC_COLLATE = 'ru_RU.UTF-8' " \
                                                        "LC_CTYPE = 'ru_RU.UTF-8'"
             cursor.execute(create_db)
             privileges_set = "GRANT ALL PRIVILEGES ON DATABASE " + name_db + " TO " + login
             cursor.execute(privileges_set)
-            init_dump_tbl()
         cursor.close()
         blacklist_db = PostgresqlDatabase(name_db, host=host, port=port, user=login, password=password)
         database_proxy.initialize(blacklist_db)
         database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
-
+        if not db_exist_flag:
+            init_dump_tbl()
         logger.info('Check database: PostgreSQL Ok')
 
     else:
@@ -136,42 +139,42 @@ def init_db(logger, cfg):
 
 def init_dump_tbl():
     try:
+        Dump.get(Dump.param == 'lastDumpDate')
+    except Dump.DoesNotExist:
         Dump.create(param='lastDumpDate', value='1325376000')
-    except IntegrityError:
-        pass
 
     try:
+        Dump.get(Dump.param == 'lastDumpDateUrgently')
+    except Dump.DoesNotExist:
         Dump.create(param='lastDumpDateUrgently', value='1325376000')
-    except IntegrityError:
-        pass
 
     try:
+        Dump.get(Dump.param == 'lastAction')
+    except Dump.DoesNotExist:
         Dump.create(param='lastAction', value='getLastDumpDate')
-    except IntegrityError:
-        pass
 
     try:
+        Dump.get(Dump.param == 'lastResult')
+    except Dump.DoesNotExist:
         Dump.create(param='lastResult', value='default')
-    except IntegrityError:
-        pass
 
     try:
+        Dump.get(Dump.param == 'lastCode')
+    except Dump.DoesNotExist:
         Dump.create(param='lastCode', value='default')
-    except IntegrityError:
-        pass
 
     try:
+        Dump.get(Dump.param == 'dumpFormatVersion')
+    except Dump.DoesNotExist:
         Dump.create(param='dumpFormatVersion', value='2.2')
-    except IntegrityError:
-        pass
 
     try:
+        Dump.get(Dump.param == 'webServiceVersion')
+    except Dump.DoesNotExist:
         Dump.create(param='webServiceVersion', value='3')
-    except IntegrityError:
-        pass
 
     try:
+        Dump.get(Dump.param == 'docVersion')
+    except Dump.DoesNotExist:
         Dump.create(param='docVersion', value='4')
-    except IntegrityError:
-        pass
 

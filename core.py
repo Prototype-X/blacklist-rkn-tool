@@ -210,9 +210,9 @@ class Core:
                     for domain_del_txt in domain_del_sql:
                         domain_inform_del_set.add(domain_del_txt.domain)
 
-                    Domain.delete().where(Domain.item == del_item).execute()
-                    URL.delete().where(URL.item == del_item).execute()
-                    IP.delete().where(IP.item == del_item).execute()
+                    # Domain.delete().where(Domain.item == del_item).execute()
+                    # URL.delete().where(URL.item == del_item).execute()
+                    # IP.delete().where(IP.item == del_item).execute()
                     Item.delete().where(Item.content_id == del_item).execute()
 
             if len(add_id_set) > 0:
