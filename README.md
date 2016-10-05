@@ -145,6 +145,8 @@ Python версии 3.4.0 и выше
 ###Примечания:###
 Описание процедуры получения реестра: http://vigruzki.rkn.gov.ru/docs/description_for_operators_actual.pdf
 
+**Версия 1.5.0 не совместима с предыдущими версиями blacklist-rkn-tool, создайте БД заново, перед этим экспортируйте таблицу history, а затем импортируйте в новую БД.**
+
 ###Обзор аналогов:###
 
 * https://github.com/yegorov-p/python-zapret-info - python

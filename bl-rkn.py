@@ -241,7 +241,7 @@ def main():
     parser.add_argument("--history", action="store_true", required=False, default=False, help="history list show")
     parser.add_argument('--bt', action='store', default='ignore',
                         choices=['default', 'ip', 'domain', 'domain-mask'], help='blockType')
-    parser.add_argument("-v", "--version", action='version', version='version 1.3.0', help="show version")
+    parser.add_argument("-v", "--version", action='version', version='version 1.5.0', help="show version")
     args = parser.parse_args()
 
     ip_print = args.ip
