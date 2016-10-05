@@ -16,7 +16,7 @@ from zapretinfo import ZapretInfo
 logger = logging.getLogger(__name__)
 
 
-class Core:
+class Core(object):
     def __init__(self):
         self.session = ZapretInfo()
         self.update_dump = self.session.getLastDumpDateEx()

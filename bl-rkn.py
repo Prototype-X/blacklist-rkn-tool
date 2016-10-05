@@ -19,7 +19,7 @@ from core import Core
 logger = logging.getLogger(__name__)
 
 
-class Rutoken:
+class Rutoken(object):
     def __init__(self, cfg_obj):
         self.cfg = cfg_obj
 
