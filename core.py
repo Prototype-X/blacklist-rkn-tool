@@ -468,10 +468,11 @@ class Core(object):
             ):
                 return 2, str()
 
-            report_data = {'url_del': url_inform_del_set, 'ip_del': ip_inform_del_set, 'domain_del': domain_inform_del_set,
-                           'id_del': id_inform_del_set, 'sub_ip_del': sub_ip_inform_del_set, 'url_add': url_inform_add_set,
-                           'ip_add': ip_inform_add_set, 'domain_add': domain_inform_add_set, 'id_add': id_inform_add_set,
-                           'sub_ip_add': sub_ip_inform_add_set}
+            report_data = {'url_del': url_inform_del_set, 'ip_del': ip_inform_del_set,
+                           'domain_del': domain_inform_del_set, 'id_del': id_inform_del_set,
+                           'sub_ip_del': sub_ip_inform_del_set, 'url_add': url_inform_add_set,
+                           'ip_add': ip_inform_add_set, 'domain_add': domain_inform_add_set,
+                           'id_add': id_inform_add_set, 'sub_ip_add': sub_ip_inform_add_set}
 
             return 1, report_data
         else:
