@@ -6,6 +6,9 @@ from peewee import Proxy, Model, CharField, TextField, DateField, DateTimeField,
                    SqliteDatabase, MySQLDatabase, PostgresqlDatabase, ForeignKeyField, fn
 import os
 
+import logging
+logger = logging.getLogger(__name__)
+
 database_proxy = Proxy()
 
 
@@ -69,7 +72,7 @@ class History(Model):
         database = database_proxy
 
 
-def init_db(logger, cfg):
+def init_db(cfg):
     path_py = str(os.path.dirname(os.path.abspath(__file__)))
     login = cfg.User()
     password = cfg.Password()
