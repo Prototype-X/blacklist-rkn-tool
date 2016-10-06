@@ -10,10 +10,10 @@ import logging
 import smtplib
 from email.mime.text import MIMEText
 import subprocess
-
+from peewee import fn
 
 from config import Config
-from db import Dump, Item, IP, Domain, URL, History, init_db, fn
+from db import Dump, Item, IP, Domain, URL, History, init_db
 from core import Core
 
 logger = logging.getLogger(__name__)
@@ -272,7 +272,8 @@ class BlrknCLI(object):
         elif self.history_print:
             self.rept.history_show()
         else:
-            self._get_dump()
+            self._parse_dump_only()
+            # self._get_dump()
 
         logger.info('Script stopped.')
 
