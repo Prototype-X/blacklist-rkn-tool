@@ -232,80 +232,97 @@ class Reporter(object):
             print(history_row.date, history_row.requestCode)
 
 
-def main():
-    parser = argparse.ArgumentParser(add_help=True,
-                                     description='Tool for list of restricted websites http://vigruzki.rkn.gov.ru/')
-    parser.add_argument("--url", action="store_true", required=False, default=False, help="url list show")
-    parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip list show")
-    parser.add_argument("--domain", action="store_true", required=False, default=False, help="domain list show")
-    parser.add_argument("--history", action="store_true", required=False, default=False, help="history list show")
-    parser.add_argument('--bt', action='store', default='ignore',
-                        choices=['default', 'ip', 'domain', 'domain-mask'], help='blockType')
-    parser.add_argument("-v", "--version", action='version', version='version 1.5.0', help="show version")
-    args = parser.parse_args()
+class BlrknCLI(object):
+    def __init__(self):
+        self.parser = argparse.ArgumentParser(add_help=True,
+                                              description='Tool for list of restricted websites '
+                                                          'http://vigruzki.rkn.gov.ru/')
+        self.parser.add_argument("--url", action="store_true", required=False, default=False, help="url list show")
+        self.parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip list show")
+        self.parser.add_argument("--domain", action="store_true", required=False, default=False,
+                                 help="domain list show")
+        self.parser.add_argument("--history", action="store_true", required=False, default=False,
+                                 help="history list show")
+        self.parser.add_argument('--bt', action='store', default='ignore',
+                                 choices=['default', 'ip', 'domain', 'domain-mask'], help='blockType')
+        self.parser.add_argument("-v", "--version", action='version', version='version 1.5.0', help="show version")
 
-    ip_print = args.ip
-    url_print = args.url
-    domain_print = args.domain
-    history_print = args.history
-    block_type = args.bt
+        self.args = self.parser.parse_args()
 
-    cfg = Config()
-    rept = Reporter()
+        self.ip_print = self.args.ip
+        self.url_print = self.args.url
+        self.domain_print = self.args.domain
+        self.history_print = self.args.history
+        self.block_type = self.args.bt
 
-    if cfg.Notify():
-        notice = Notifier(cfg)
+        self.cfg = Config()
+        self._cfg_logging()
+        logger.info('Starting script.')
 
-    if cfg.LogRewrite():
-        filemode = 'w'
-    else:
-        filemode = 'a'
+        self.rept = Reporter()
 
-    logging.basicConfig(filename=cfg.LogPathFName(), filemode=filemode,
-                        format=u'%(asctime)s  %(message)s', level=logging.INFO)
-    # logger = logging.getLogger(__name__)
+        init_db(self.cfg)
 
-    logger.info('Starting script.')
+        if self.ip_print:
+            self.rept.ip_show(self.block_type)
+        elif self.url_print:
+            self.rept.url_show()
+        elif self.domain_print:
+            self.rept.domain_show(self.block_type)
+        elif self.history_print:
+            self.rept.history_show()
+        else:
+            self._get_dump()
 
-    init_db(logger, cfg)
-    # dump = Core()
-    # dump.parse_dump()
+        logger.info('Script stopped.')
 
-    if ip_print:
-        rept.ip_show(block_type)
-    elif url_print:
-        rept.url_show()
-    elif domain_print:
-        rept.domain_show(block_type)
-    elif history_print:
-        rept.history_show()
-    else:
-        dump = Core()
-        srv_msg = dump.check_service_upd()
+    def _get_dump(self):
+        self.dump = Core()
+        srv_msg = self.dump.check_service_upd()
         if srv_msg:
-            if cfg.Notify():
-                notice.send_mail(srv_msg, subject='vigruzki.rkn.gov.ru service update')
-        if dump.check_new_dump():
-            if cfg.GenRequest():
-                signer = Rutoken(cfg)
+            if self.cfg.Notify():
+                self.notice = Notifier(self.cfg)
+                self.notice.send_mail(srv_msg, subject='vigruzki.rkn.gov.ru service update')
+        if self.dump.check_new_dump():
+            if self.cfg.GenRequest():
+                signer = Rutoken(self.cfg)
                 signer.gen_request()
                 signer.sign_request()
-            code = dump.send_request(cfg.XMLPathFName(), cfg.P7SPathFName(), '2.2')
+            code = self.dump.send_request(self.cfg.XMLPathFName(), self.cfg.P7SPathFName(), '2.2')
             if code:
-                if dump.get_request(code, cfg):
-                    result_bool, raw_rept = dump.parse_dump()
+                if self.dump.get_request(code, self.cfg):
+                    result_bool, raw_rept = self.dump.parse_dump()
                     if result_bool == 1:
-                        if cfg.Notify():
-                            message = rept.statistics_show(**raw_rept)
-                            notice.send_mail(message)
+                        if self.cfg.Notify():
+                            message = self.rept.statistics_show(**raw_rept)
+                            self.notice.send_mail(message)
                     elif result_bool == 2:
                         logger.info('No updates')
                     elif result_bool == 0:
-                        if cfg.Notify():
+                        if self.cfg.Notify():
                             message = 'Houston, we have a problem'
-                            notice.send_mail(message)
+                            self.notice.send_mail(message)
                         logger.info('parse_dump error')
-    logger.info('Script stopped.')
+
+    def _parse_dump_only(self):
+        self.dump = Core()
+        self.dump.parse_dump()
+
+    def _cfg_logging(self):
+        """
+        Configure logging output format.
+        """
+        if self.cfg.LogRewrite():
+            filemode = 'w'
+        else:
+            filemode = 'a'
+
+        logging.basicConfig(filename=self.cfg.LogPathFName(), filemode=filemode,
+                            format=u'%(asctime)s  %(message)s', level=logging.INFO)
+
+
+def main():
+    BlrknCLI()
 
 if __name__ == '__main__':
     main()
