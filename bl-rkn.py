@@ -272,8 +272,8 @@ class BlrknCLI(object):
         elif self.history_print:
             self.rept.history_show()
         else:
-            self._parse_dump_only()
-            # self._get_dump()
+            # self._parse_dump_only()
+            self._get_dump()
 
         logger.info('Script stopped.')
 
