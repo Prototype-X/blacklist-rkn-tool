@@ -71,7 +71,7 @@ Python версии 3.4.0 и выше
 
     [DataBase]
     Type = 0 # 0 - SQLite, 1 - MySQL, 2 - PostgreSQL
-    Name = blacklist # имя БД, для SQlite имя файла DBName
+    Name = blacklist # имя БД, для SQlite имя файла, без расширения
     Host = localhost
     Port = 5432
     User = user
@@ -95,7 +95,7 @@ Python версии 3.4.0 и выше
 
     [Request]
     GenerateRequest = 0 # 1 - генерировать запрос .xml и .xml.p7s автоматически нужен usb ключ Rutoken
-    OperatorName = ООО "Телеком" # параметры необходимые для создания файла подписи актуально,
+    OperatorName = ООО "Телеком" # параметры необходимые для создания файла запроса актуально,
     inn = 1234567890             # если GenerateRequest = 1
     ogrn = 1234567890123         #
     email = support@mail.ru      #
@@ -147,7 +147,7 @@ Python версии 3.4.0 и выше
 ###Примечания:###
 Описание процедуры получения реестра: http://vigruzki.rkn.gov.ru/docs/description_for_operators_actual.pdf
 
-**Версия 1.5.0 не совместима с предыдущими версиями blacklist-rkn-tool, создайте БД заново, перед этим экспортируйте таблицу history, а затем импортируйте в новую БД.**
+**Версии 1.5.0 и выше не совместимы с предыдущими версиями blacklist-rkn-tool, создайте БД заново, перед этим экспортируйте таблицу history, а затем импортируйте в новую БД.**
 
 ###Обзор аналогов:###
 
