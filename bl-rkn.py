@@ -242,7 +242,7 @@ class BlrknCLI(object):
                                  help="history list show")
         self.parser.add_argument('--bt', action='store', default='ignore',
                                  choices=['default', 'ip', 'domain', 'domain-mask'], help='blockType')
-        self.parser.add_argument("-v", "--version", action='version', version='version 1.5.0', help="show version")
+        self.parser.add_argument("-v", "--version", action='version', version='version 1.5.2', help="show version")
 
         self.args = self.parser.parse_args()
 
