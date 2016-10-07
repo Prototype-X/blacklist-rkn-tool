@@ -261,7 +261,7 @@ class BlrknCLI(object):
 
         self.rept = Reporter()
 
-        init_db(self.cfg)
+        self.ctl_transact = init_db(self.cfg)
 
         if self.ip_print:
             self.rept.ip_show(self.block_type)
@@ -278,7 +278,7 @@ class BlrknCLI(object):
         logger.info('Script stopped.')
 
     def _get_dump(self):
-        self.dump = Core()
+        self.dump = Core(self.ctl_transact)
         srv_msg = self.dump.check_service_upd()
         if srv_msg:
             if self.cfg.Notify():
@@ -306,7 +306,7 @@ class BlrknCLI(object):
                         logger.info('parse_dump error')
 
     def _parse_dump_only(self):
-        self.dump = Core()
+        self.dump = Core(self.ctl_transact)
         self.dump.parse_dump()
 
     def _cfg_logging(self):

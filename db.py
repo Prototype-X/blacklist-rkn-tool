@@ -80,7 +80,7 @@ def init_db(cfg):
     port = cfg.Port()
     name_db = cfg.Name()
     type_db = int(cfg.Type())
-    # blacklist_db = None
+    blacklist_db = False
 
     if type_db == 0:
         blacklist_db = SqliteDatabase(path_py + '/' + name_db + '.db', pragmas=(('foreign_keys', 1),))
@@ -139,6 +139,8 @@ def init_db(cfg):
         logger.info('Wrong type DB. Check configuration.')
         exit()
 
+    return blacklist_db
+
 
 def init_dump_tbl():
     try:
@@ -180,4 +182,3 @@ def init_dump_tbl():
         Dump.get(Dump.param == 'docVersion')
     except Dump.DoesNotExist:
         Dump.create(param='docVersion', value='4')
-
