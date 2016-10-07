@@ -169,29 +169,25 @@ class Reporter(object):
             domain_sql = Domain.select(fn.Distinct(Domain.domain))
             for domain_row in domain_sql:
                 print(domain_row.domain)
+
         elif bt == 'domain':
-            domain_unique = set()
-            item_sql = Item.select(Item.content_id, Item.blockType).where(Item.blockType == 'domain')
-            for item_row in item_sql:
-                domain_sql = Domain.select().where(Domain.item == item_row.content_id)
-                for domain_row in domain_sql:
-                    domain_unique.add(domain_row.domain)
-            for domain in domain_unique:
-                print(domain)
+            domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain')
+            for join_row in domain_sql:
+                print(join_row.domain)
+
         elif bt == 'domain-mask':
-            domain_unique = set()
-            item_sql = Item.select(Item.content_id, Item.blockType).where(Item.blockType == 'domain-mask')
-            for item_row in item_sql:
-                domain_sql = Domain.select().where(Domain.item == item_row.content_id)
-                for domain_row in domain_sql:
-                    domain_unique.add(domain_row.domain)
-            for domain in domain_unique:
-                print(domain)
-        else:
-            print("Invalid --bt " + bt)
+            domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain-mask')
+            for join_row in domain_sql:
+                print(join_row.domain)
+
+        elif bt == 'default':
+            domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'default')
+            for join_row in domain_sql:
+                print(join_row.domain)
 
     @staticmethod
     def ip_show(bt):
+
         if bt == 'ignore':
             ip_sql = IP.select(fn.Distinct(IP.ip))
             for ip_row in ip_sql:
@@ -199,31 +195,32 @@ class Reporter(object):
                     print(ip_row.ip + '/' + str(ip_row.mask))
                 else:
                     print(ip_row.ip)
+
         elif bt == 'ip':
-            ip_unique = set()
-            item_sql = Item.select(Item.content_id, Item.blockType).where(Item.blockType == 'ip')
-            for item_row in item_sql:
-                ip_sql = IP.select().where(IP.item == item_row.content_id)
-                for ip_row in ip_sql:
-                    if ip_row.mask < 32:
-                        ip_unique.add(ip_row.ip + '/' + str(ip_row.mask))
-                    else:
-                        ip_unique.add(ip_row.ip)
-            for ip in ip_unique:
-                print(ip)
-        else:
-            print("Invalid --bt " + bt)
+            ip_sql = IP.select(fn.Distinct(IP.ip)).join(Item).where(Item.blockType == 'ip')
+            for join_row in ip_sql:
+                print(join_row.ip)
+
+        elif bt == 'default':
+            ip_sql = IP.select(fn.Distinct(IP.ip)).join(Item).where(Item.blockType == 'default')
+            for join_row in ip_sql:
+                print(join_row.ip)
+
+        elif bt == 'domain':
+            ip_sql = IP.select(fn.Distinct(IP.ip)).join(Item).where(Item.blockType == 'domain')
+            for join_row in ip_sql:
+                print(join_row.ip)
+
+        elif bt == 'domain-mask':
+            ip_sql = IP.select(fn.Distinct(IP.ip)).join(Item).where(Item.blockType == 'domain-mask')
+            for join_row in ip_sql:
+                print(join_row.ip)
 
     @staticmethod
     def url_show():
         url_sql = URL.select(fn.Distinct(URL.url))
         for url_row in url_sql:
             print(url_row.url)
-
-        # item_sql = Item.select(Item.content_id, Item.blockType).where((Item.blockType == 'domain') |
-        #                                                               (Item.blockType == 'domain-mask'))
-        # for item_row in item_sql:
-        #     print('http://' + Domain.get(Domain.item == item_row.content_id).domain)
 
     @staticmethod
     def history_show():
