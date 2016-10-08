@@ -71,7 +71,7 @@ Python версии 3.4.0 и выше
 
     [DataBase]
     Type = 0 # 0 - SQLite, 1 - MySQL, 2 - PostgreSQL
-    Name = blacklist # имя БД, для SQlite имя файла, без расширения
+    Name = blacklist # имя БД, для SQLite имя файла, без расширения
     Host = localhost
     Port = 5432
     User = user
