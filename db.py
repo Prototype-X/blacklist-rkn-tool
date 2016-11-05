@@ -30,7 +30,8 @@ class Item(Model):
     decision_date = DateField(null=False)
     decision_num = TextField(null=False)
     decision_org = TextField(null=False)
-    date_added = DateTimeField(null=False)
+    add = BigIntegerField(null=False)
+    purge = BigIntegerField(null=True)
 
     class Meta(object):
         database = database_proxy
@@ -40,7 +41,8 @@ class IP(Model):
     item = ForeignKeyField(Item, to_field=Item.content_id, on_delete='CASCADE', on_update='CASCADE', index=True)
     ip = TextField(null=False)
     mask = IntegerField(null=False, default=32)
-    date_added = DateTimeField(null=False)
+    add = BigIntegerField(null=False)
+    purge = BigIntegerField(null=True)
 
     class Meta(object):
         database = database_proxy
@@ -49,7 +51,8 @@ class IP(Model):
 class Domain(Model):
     item = ForeignKeyField(Item, to_field=Item.content_id, on_delete='CASCADE', on_update='CASCADE', index=True)
     domain = TextField(null=False)
-    date_added = DateTimeField(null=False)
+    add = BigIntegerField(null=False)
+    purge = BigIntegerField(null=True)
 
     class Meta(object):
         database = database_proxy
@@ -58,7 +61,8 @@ class Domain(Model):
 class URL(Model):
     item = ForeignKeyField(Item, to_field=Item.content_id, on_delete='CASCADE', on_update='CASCADE', index=True)
     url = TextField(null=False)
-    date_added = DateTimeField(null=False)
+    add = BigIntegerField(null=False)
+    purge = BigIntegerField(null=True)
 
     class Meta(object):
         database = database_proxy

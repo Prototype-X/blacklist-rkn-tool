@@ -23,7 +23,6 @@ class Core(object):
         self.session = ZapretInfo()
         self.update_dump = self.session.getLastDumpDateEx()
 
-
     @staticmethod
     def date_time_xml_to_db(date_time_xml):
         date_time_db = date_time_xml.replace('T', ' ')
@@ -265,7 +264,8 @@ class Core(object):
                             if data_xml.tag == 'ip':
                                 ip = data_xml.text
                                 ip_inform_add_set.add(ip)
-                                IP.create(item=content_id, ip=ip, date_added=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                                IP.create(item=content_id, ip=ip, date_added=datetime.now()
+                                          .strftime("%Y-%m-%d %H:%M:%S"))
                             if data_xml.tag == 'ipSubnet':
                                 net = data_xml.text.split('/')
                                 sub_ip_inform_add_set.add(data_xml.text)
