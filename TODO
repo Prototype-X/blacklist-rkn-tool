@@ -11,3 +11,7 @@ todo сделать вывод последних изменений ip, url, do
 todo столбцы add и del
 todo в таблицах ip, url, domain, item
 todo ссылающиеся на history при добавлении и удалении.
+
+todo очистка истории изменений в реестре - функция, параметр DiffCount
+todo очистка таблицы history - функция, параметр HistoryCount
+todo запуск функции очистки из CLI
