@@ -55,6 +55,7 @@ class Config(object):
             self.config.set('Request', 'ID', '123456789abcdef00000000000000001')
             self.config.add_section('History')
             self.config.set('History', 'HistoryCount', '0')
+            self.config.set('History', 'DiffCount', '1')
             self.config.add_section('Dump')
             self.config.set('Dump', 'DumpFileSave', '1')
             self.config.set('Dump', 'GetResultMaxCount', '10')
@@ -312,6 +313,15 @@ class Config(object):
             history_count = '0'
             exit()
         return history_count
+
+    def DiffCount(self):
+        try:
+            diff_count = self.config.get('History', 'DiffCount')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section History or option DiffCount in config file')
+            diff_count = '1'
+            exit()
+        return diff_count
 
     def DumpFileSave(self):
         try:
