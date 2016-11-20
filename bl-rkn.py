@@ -11,6 +11,7 @@ import smtplib
 from email.mime.text import MIMEText
 import subprocess
 from peewee import fn
+import random
 
 from config import Config
 from db import Dump, Item, IP, Domain, URL, History, init_db
@@ -269,8 +270,8 @@ class BlrknCLI(object):
         elif self.history_print:
             self.rept.history_show()
         else:
-            # self._parse_dump_only()
-            self._get_dump()
+            self._parse_dump_only()
+            # self._get_dump()
 
         logger.info('Script stopped.')
 
@@ -304,6 +305,10 @@ class BlrknCLI(object):
 
     def _parse_dump_only(self):
         self.dump = Core(self.ctl_transact)
+        self.dump.code = 'test_' + ''.join(random.SystemRandom().
+                                           choice('abcdefgijklmnoprstuvwxyz1234567890') for _ in range(8))
+        History.create(requestCode=self.dump.code, date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        self.dump.code_id = History.get(History.requestCode == self.dump.code).id
         self.dump.parse_dump()
 
     def _cfg_logging(self):

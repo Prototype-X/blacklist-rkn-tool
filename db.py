@@ -3,7 +3,7 @@
 __author__ = 'maximus'
 
 from peewee import Proxy, Model, CharField, TextField, DateField, DateTimeField, IntegerField, BigIntegerField, \
-                   SqliteDatabase, MySQLDatabase, PostgresqlDatabase, ForeignKeyField
+                   BooleanField, SqliteDatabase, MySQLDatabase, PostgresqlDatabase, ForeignKeyField
 import os
 
 import logging
@@ -70,6 +70,7 @@ class URL(Model):
 
 class History(Model):
     requestCode = TextField(null=False)
+    remove = BooleanField(null=False, default=True)
     date = DateTimeField(null=False)
 
     class Meta(object):
