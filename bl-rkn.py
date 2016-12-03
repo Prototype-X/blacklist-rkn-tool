@@ -270,8 +270,8 @@ class BlrknCLI(object):
         elif self.history_print:
             self.rept.history_show()
         else:
-            self._parse_dump_only()
-            # self._get_dump()
+            # self._parse_dump_only()
+            self._get_dump()
 
         logger.info('Script stopped.')
 
@@ -287,9 +287,8 @@ class BlrknCLI(object):
                 signer = Rutoken(self.cfg)
                 signer.gen_request()
                 signer.sign_request()
-            code = self.dump.send_request(self.cfg.XMLPathFName(), self.cfg.P7SPathFName(), '2.2')
-            if code:
-                if self.dump.get_request(code, self.cfg):
+            if self.dump.send_request(self.cfg.XMLPathFName(), self.cfg.P7SPathFName(), '2.2'):
+                if self.dump.get_request(self.cfg):
                     result_bool, raw_rept = self.dump.parse_dump()
                     if result_bool == 1:
                         if self.cfg.Notify():

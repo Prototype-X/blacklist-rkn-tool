@@ -105,12 +105,12 @@ class Core(object):
             logger.error(request['resultComment'])
             return False
 
-    def get_request(self, code, cfg):
+    def get_request(self, cfg):
         path_py = str(os.path.dirname(os.path.abspath(__file__)))
         logger.info('Waiting for a 90 sec.')
         time.sleep(90)
         logger.info('Trying to get result...')
-        request = self.session.getResult(code)
+        request = self.session.getResult(self.code)
         Dump.update(value='getRequest').where(Dump.param == 'lastAction').execute()
         max_count = cfg.GetResultMaxCount()
         for count in range(1, max_count + 1):
