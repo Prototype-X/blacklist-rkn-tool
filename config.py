@@ -312,7 +312,7 @@ class Config(object):
             print('Error section History or option HistoryCount in config file')
             history_count = '0'
             exit()
-        return history_count
+        return int(history_count)
 
     def DiffCount(self):
         try:
@@ -321,7 +321,7 @@ class Config(object):
             print('Error section History or option DiffCount in config file')
             diff_count = '1'
             exit()
-        return diff_count
+        return int(diff_count)
 
     def DumpFileSave(self):
         try:

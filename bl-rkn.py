@@ -270,8 +270,9 @@ class BlrknCLI(object):
         elif self.history_print:
             self.rept.history_show()
         else:
-            # self._parse_dump_only()
-            self._get_dump()
+            self._parse_dump_only()
+            # self._peewee_debug()
+            # self._get_dump()
 
         logger.info('Script stopped.')
 
@@ -323,7 +324,7 @@ class BlrknCLI(object):
                             format=u'%(asctime)s  %(message)s', level=logging.INFO)
 
     @staticmethod
-    def _peewee_debug(self):
+    def _peewee_debug():
         log = logging.getLogger('peewee')
         log.setLevel(logging.DEBUG)
         log.addHandler(logging.StreamHandler())

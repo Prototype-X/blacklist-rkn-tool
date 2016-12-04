@@ -174,7 +174,7 @@ class Core(object):
                 # print(content_xml.tag, content_xml.attrib, content_xml.text)
                 id_set_dump.add(int(content_xml.attrib['id']))
 
-            select_content_id_db = Item.select(Item.content_id)
+            select_content_id_db = Item.select(Item.content_id).where(Item.purge >> None)
             for content_db in select_content_id_db:
                 id_set_db.add(content_db.content_id)
 
@@ -304,7 +304,7 @@ class Core(object):
                                 entry_type = int(data_xml.attrib['entryType'])
 
                                 Item.update(hashRecord=hash_value).where(Item.content_id == content_id).execute()
-                                Item.update(purge=None).where(Item.content_id == content_id).execute()
+                                # Item.update(purge=None).where(Item.content_id == content_id).execute()
                                 data_update = True
                             else:
                                 data_update = False
@@ -478,5 +478,12 @@ class Core(object):
         else:
             return 0, dict()
 
-    def cleaner(self):
-        History.select()
+    def cleaner(self, cfg):
+        # history = History.select(History.id).order_by(History.id.desc()).limit(cfg.DiffCount())
+        # Item.delete().where(~(Item.purge << history)).execute()
+        history_del = History.select(History.id).order_by(History.id.desc()).offset(cfg.DiffCount())
+        Item.delete().where(Item.purge << history_del).execute()
+        IP.delete().where(IP.purge << history_del).execute()
+        Domain.delete().where(Domain.purge << history_del).execute()
+        URL.delete().where(URL.purge << history_del).execute()
+
