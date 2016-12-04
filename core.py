@@ -174,7 +174,7 @@ class Core(object):
                 # print(content_xml.tag, content_xml.attrib, content_xml.text)
                 id_set_dump.add(int(content_xml.attrib['id']))
 
-            select_content_id_db = Item.select(Item.content_id).where(Item.purge >> None)
+            select_content_id_db = Item.select(Item.content_id)
             for content_db in select_content_id_db:
                 id_set_db.add(content_db.content_id)
 
@@ -304,6 +304,7 @@ class Core(object):
                                 entry_type = int(data_xml.attrib['entryType'])
 
                                 Item.update(hashRecord=hash_value).where(Item.content_id == content_id).execute()
+                                Item.update(purge=None).where(Item.content_id == content_id).execute()
                                 data_update = True
                             else:
                                 data_update = False
@@ -465,10 +466,8 @@ class Core(object):
                 len(id_inform_add_set) == 0 and
                 len(sub_ip_inform_add_set) == 0
             ):
-                History.update(remove=True).where(History.id == self.code_id).execute()
                 return 2, str()
 
-            History.update(remove=False).where(History.id == self.code_id).execute()
             report_data = {'url_del': url_inform_del_set, 'ip_del': ip_inform_del_set,
                            'domain_del': domain_inform_del_set, 'id_del': id_inform_del_set,
                            'sub_ip_del': sub_ip_inform_del_set, 'url_add': url_inform_add_set,
@@ -478,3 +477,6 @@ class Core(object):
             return 1, report_data
         else:
             return 0, dict()
+
+    def cleaner(self):
+        History.select()
