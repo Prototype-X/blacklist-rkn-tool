@@ -322,6 +322,12 @@ class BlrknCLI(object):
         logging.basicConfig(filename=self.cfg.LogPathFName(), filemode=filemode,
                             format=u'%(asctime)s  %(message)s', level=logging.INFO)
 
+    @staticmethod
+    def _peewee_debug(self):
+        log = logging.getLogger('peewee')
+        log.setLevel(logging.DEBUG)
+        log.addHandler(logging.StreamHandler())
+
 
 def main():
     BlrknCLI()
