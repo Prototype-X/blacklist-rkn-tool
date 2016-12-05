@@ -270,14 +270,14 @@ class BlrknCLI(object):
         elif self.history_print:
             self.rept.history_show()
         else:
-            self._parse_dump_only()
             # self._peewee_debug()
-            # self._get_dump()
+            # self._parse_dump_only()
+            self._get_dump()
 
         logger.info('Script stopped.')
 
     def _get_dump(self):
-        self.dump = Core(self.ctl_transact)
+        self.dump = Core(self.ctl_transact, self.cfg)
         srv_msg = self.dump.check_service_upd()
         if srv_msg:
             if self.cfg.Notify():
@@ -288,8 +288,8 @@ class BlrknCLI(object):
                 signer = Rutoken(self.cfg)
                 signer.gen_request()
                 signer.sign_request()
-            if self.dump.send_request(self.cfg.XMLPathFName(), self.cfg.P7SPathFName(), '2.2'):
-                if self.dump.get_request(self.cfg):
+            if self.dump.send_request():
+                if self.dump.get_request():
                     result_bool, raw_rept = self.dump.parse_dump()
                     if result_bool == 1:
                         if self.cfg.Notify():
@@ -304,7 +304,7 @@ class BlrknCLI(object):
                         logger.info('parse_dump error')
 
     def _parse_dump_only(self):
-        self.dump = Core(self.ctl_transact)
+        self.dump = Core(self.ctl_transact, self.cfg)
         self.dump.code = 'test_' + ''.join(random.SystemRandom().
                                            choice('abcdefgijklmnoprstuvwxyz1234567890') for _ in range(8))
         History.create(requestCode=self.dump.code, date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))

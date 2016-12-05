@@ -17,11 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 class Core(object):
-    def __init__(self, transact):
+    def __init__(self, transact, cfg):
         self.path_py = str(os.path.dirname(os.path.abspath(__file__)))
         self.transact = transact
         self.session = ZapretInfo()
         self.update_dump = self.session.getLastDumpDateEx()
+        self.cfg = cfg
         self.code = None
         self.code_id = None
 
@@ -85,9 +86,9 @@ class Core(object):
             Dump.update(value='lastDump').where(Dump.param == 'lastResult').execute()
             return False
 
-    def send_request(self, xml_file, p7s_file, version='2.2'):
+    def send_request(self):
         logger.info('Sending request.')
-        request = self.session.sendRequest(xml_file, p7s_file, version)
+        request = self.session.sendRequest(self.cfg.XMLPathFName(), self.cfg.P7SPathFName())
         logger.info('Checking request status.')
         if request['result']:
             self.code = request['code']
@@ -105,14 +106,14 @@ class Core(object):
             logger.error(request['resultComment'])
             return False
 
-    def get_request(self, cfg):
+    def get_request(self):
         path_py = str(os.path.dirname(os.path.abspath(__file__)))
         logger.info('Waiting for a 90 sec.')
         time.sleep(90)
         logger.info('Trying to get result...')
         request = self.session.getResult(self.code)
         Dump.update(value='getRequest').where(Dump.param == 'lastAction').execute()
-        max_count = cfg.GetResultMaxCount()
+        max_count = self.cfg.GetResultMaxCount()
         for count in range(1, max_count + 1):
             if request['result']:
                 logger.info('Got a dump ver. %s for the %s (INN %s)',
@@ -129,7 +130,7 @@ class Core(object):
                     logger.info('Unpacking.')
                     zip_file = zipfile.ZipFile(path_py + '/result.zip', 'r')
                     zip_file.extract('dump.xml', path_py + '/')
-                    if cfg.DumpFileSave():
+                    if self.cfg.DumpFileSave():
                         zip_file.extractall(path_py + '/dumps/%s' % datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
                     zip_file.close()
                 except zipfile.BadZipfile:
@@ -202,23 +203,24 @@ class Core(object):
                         logger.info('Full delete Item, IP, Domain, URL id: %s.', del_item)
 
                         id_inform_del_set.add(del_item)
-                        url_del_sql = URL.select().where(URL.item == del_item)
+                        url_del_sql = URL.select().where(URL.content_id == del_item)
                         for url_del_txt in url_del_sql:
                             url_inform_del_set.add(url_del_txt.url)
-                        ip_del_sql = IP.select().where(IP.item == del_item)
+                        ip_del_sql = IP.select().where(IP.content_id == del_item)
                         for ip_del_txt in ip_del_sql:
                             ip_inform_del_set.add(ip_del_txt.ip)
                         for sub_ip_del_txt in ip_del_sql:
                             if sub_ip_del_txt.mask < 32:
                                 sub_ip_inform_del_set.add(sub_ip_del_txt.ip + '/' + str(sub_ip_del_txt.mask))
-                        domain_del_sql = Domain.select().where(Domain.item == del_item)
+                        domain_del_sql = Domain.select().where(Domain.content_id == del_item)
                         for domain_del_txt in domain_del_sql:
                             domain_inform_del_set.add(domain_del_txt.domain)
 
-                        Domain.update(purge=self.code_id).where(Domain.item == del_item).execute()
-                        URL.update(purge=self.code_id).where(URL.item == del_item).execute()
-                        IP.update(purge=self.code_id).where(IP.item == del_item).execute()
-                        Item.update(purge=self.code_id).where(Item.content_id == del_item).execute()
+                        Domain.update(purge=self.code_id).where(Domain.content_id == del_item,
+                                                                Domain.purge >> None).execute()
+                        URL.update(purge=self.code_id).where(URL.content_id == del_item, URL.purge >> None).execute()
+                        IP.update(purge=self.code_id).where(IP.content_id == del_item, IP.purge >> None).execute()
+                        Item.update(purge=self.code_id).where(Item.content_id == del_item, Item.purge >> None).execute()
 
             if len(add_id_set) > 0:
                 include_time = str()
@@ -249,28 +251,30 @@ class Core(object):
                                 decision_date = data_xml.attrib['date']
                                 decision_number = data_xml.attrib['number']
                                 decision_org = data_xml.attrib['org']
-                                Item.create(content_id=content_id, includeTime=include_time, urgencyType=urgency_type,
-                                            entryType=entry_type, blockType=block_type, hashRecord=hash_value,
-                                            decision_date=decision_date, decision_num=decision_number,
-                                            decision_org=decision_org, add=self.code_id)
+                                item_new = Item(content_id=content_id, includeTime=include_time,
+                                                urgencyType=urgency_type, entryType=entry_type, blockType=block_type,
+                                                hashRecord=hash_value, decision_date=decision_date,
+                                                decision_num=decision_number, decision_org=decision_org,
+                                                add=self.code_id)
+                                item_new.save()
                             if data_xml.tag == 'url':
                                 url = data_xml.text
                                 url_inform_add_set.add(url)
-                                URL.create(item=content_id, url=url, add=self.code_id)
+                                URL.create(item=item_new.id, content_id=content_id, url=url, add=self.code_id)
                             if data_xml.tag == 'domain':
                                 domain = data_xml.text
                                 domain_inform_add_set.add(domain)
-                                Domain.create(item=content_id, domain=domain, add=self.code_id)
+                                Domain.create(item=item_new.id, content_id=content_id, domain=domain, add=self.code_id)
                             if data_xml.tag == 'ip':
                                 ip = data_xml.text
                                 ip_inform_add_set.add(ip)
-                                IP.create(item=content_id, ip=ip, add=self.code_id)
+                                IP.create(item=item_new.id, content_id=content_id, ip=ip, add=self.code_id)
                             if data_xml.tag == 'ipSubnet':
                                 net = data_xml.text.split('/')
                                 sub_ip_inform_add_set.add(data_xml.text)
                                 ip = net[0]
                                 mask = net[1]
-                                IP.create(item=content_id, ip=ip, mask=mask, add=self.code_id)
+                                IP.create(item=item_new.id, content_id=content_id, ip=ip, mask=mask, add=self.code_id)
 
             url_db_set = set()
             url_xml_set = set()
@@ -288,7 +292,7 @@ class Core(object):
                         if data_xml.tag == 'content':
                             content_id = int(data_xml.attrib['id'])
                             hash_value = data_xml.attrib['hash']
-                            item_db = Item.get(Item.content_id == content_id)
+                            item_db = Item.get(Item.content_id == content_id, Item.purge >> None)
 
                             if hash_value != item_db.hashRecord:
                                 logger.info('Hashes not equal, update hash id: %s', content_id)
@@ -302,8 +306,7 @@ class Core(object):
                                 except KeyError:
                                     block_type = 'default'
                                 entry_type = int(data_xml.attrib['entryType'])
-
-                                Item.update(hashRecord=hash_value).where(Item.content_id == content_id).execute()
+                                item_db.hashRecord = hash_value
                                 # Item.update(purge=None).where(Item.content_id == content_id).execute()
                                 data_update = True
                             else:
@@ -319,37 +322,51 @@ class Core(object):
                                 logger.info('content_id: %s.', content_id)
                                 logger.info('XML includeTime: %s.', include_time)
                                 logger.info('DB includeTime: %s.', item_db.includeTime)
-                                Item.update(includeTime=include_time).where(Item.content_id == content_id).execute()
+                                item_db.includeTime = include_time
+                                # Item.update(includeTime=include_time).where(Item.content_id == content_id,
+                                #                                             Item.purge >> None).execute()
                             if item_db.urgencyType != urgency_type:
                                 logger.info('content_id: %s.', content_id)
                                 logger.info('XML urgencyType: %s.', urgency_type)
                                 logger.info('DB urgencyType: %s.', item_db.urgencyType)
-                                Item.update(urgencyType=urgency_type).where(Item.content_id == content_id).execute()
+                                item_db.urgencyType = urgency_type
+                                # Item.update(urgencyType=urgency_type).where(Item.content_id == content_id,
+                                #                                             Item.purge >> None).execute()
                             if item_db.blockType != block_type:
                                 logger.info('content_id: %s.', content_id)
                                 logger.info('XML blockType: %s.', block_type)
                                 logger.info('DB blockType: %s.', item_db.blockType)
-                                Item.update(blockType=block_type).where(Item.content_id == content_id).execute()
+                                item_db.blockType = block_type
+                                # Item.update(blockType=block_type).where(Item.content_id == content_id,
+                                #                                         Item.purge >> None).execute()
                             if item_db.entryType != entry_type:
                                 logger.info('content_id: %s.', content_id)
                                 logger.info('XML entryType: %s.', entry_type)
                                 logger.info('DB entryType: %s.', item_db.entryType)
-                                Item.update(entryType=entry_type).where(Item.content_id == content_id).execute()
+                                item_db.entryType = entry_type
+                                # Item.update(entryType=entry_type).where(Item.content_id == content_id,
+                                #                                         Item.purge >> None).execute()
                             if str(item_db.decision_date) != decision_date:
                                 logger.info('content_id: %s.', content_id)
                                 logger.info('XML date: %s.', decision_date)
                                 logger.info('DB date: %s.', str(item_db.decision_date))
-                                Item.update(decision_date=decision_date).where(Item.content_id == content_id).execute()
+                                item_db.decision_date = decision_date
+                                # Item.update(decision_date=decision_date).where(Item.content_id == content_id,
+                                #                                                Item.purge >> None).execute()
                             if item_db.decision_num != decision_number:
                                 logger.info('content_id: %s.', content_id)
                                 logger.info('XML number: %s.', decision_number)
                                 logger.info('DB number: %s.', item_db.decision_num)
-                                Item.update(decision_num=decision_number).where(Item.content_id == content_id).execute()
+                                item_db.decision_num = decision_number
+                                # Item.update(decision_num=decision_number).where(Item.content_id == content_id,
+                                #                                                 Item.purge >> None).execute()
                             if item_db.decision_org != decision_org:
                                 logger.info('content_id: %s.', content_id)
                                 logger.info('XML org: %s.', decision_org)
                                 logger.info('DB org: %s.', item_db.decision_org)
-                                Item.update(decision_org=decision_org).where(Item.content_id == content_id).execute()
+                                item_db.decision_org = decision_org
+                                # Item.update(decision_org=decision_org).where(Item.content_id == content_id,
+                                #                                              Item.purge >> None).execute()
 
                         if data_xml.tag == 'url':
                             url_xml_set.add(data_xml.text)
@@ -364,7 +381,7 @@ class Core(object):
                             sub_ip_xml_set.add(data_xml.text)
 
                     if data_update:
-                        url_db = URL.select().where(URL.item == content_id)
+                        url_db = URL.select().where(URL.item == item_db.id, URL.purge >> None)
 
                         for url_item in url_db:
                             url_db_set.add(url_item.url)
@@ -376,16 +393,18 @@ class Core(object):
                                 logger.info('Delete id %s URL: %s', content_id, delete_url_set)
                                 url_inform_del_set.update(delete_url_set)
                                 for delete_url in delete_url_set:
-                                    URL.update(purge=self.code_id).where(URL.url == delete_url).execute()
+                                    URL.update(purge=self.code_id).where(URL.item == item_db.id, URL.url == delete_url,
+                                                                         URL.purge >> None).execute()
                             if len(add_url_set) > 0:
                                 logger.info('Add id %s URL: %s', content_id, add_url_set)
                                 url_inform_add_set.update(add_url_set)
                                 for add_url in add_url_set:
-                                    URL.create(item=content_id, url=add_url, add=self.code_id)
+                                    URL.create(item=item_db.id, content_id=item_db.content_id, url=add_url,
+                                               add=self.code_id)
                         url_db_set.clear()
                         url_xml_set.clear()
 
-                        domain_db = Domain.select().where(Domain.item == content_id)
+                        domain_db = Domain.select().where(Domain.item == item_db.id, Domain.purge >> None)
 
                         for domain_item in domain_db:
                             domain_db_set.add(domain_item.domain)
@@ -397,16 +416,19 @@ class Core(object):
                                 logger.info('Delete id %s Domain: %s', content_id, delete_domain_set)
                                 domain_inform_del_set.update(delete_domain_set)
                                 for delete_domain in delete_domain_set:
-                                    Domain.update(purge=self.code_id).where(Domain.domain == delete_domain).execute()
+                                    Domain.update(purge=self.code_id).where(Domain.item == item_db.id,
+                                                                            Domain.domain == delete_domain,
+                                                                            Domain.purge >> None).execute()
                             if len(add_domain_set) > 0:
                                 logger.info('Add id %s Domain: %s', content_id, add_domain_set)
                                 domain_inform_add_set.update(add_domain_set)
                                 for add_domain in add_domain_set:
-                                    Domain.create(item=content_id, domain=add_domain, add=self.code_id)
+                                    Domain.create(item=item_db.id, content_id=item_db.content_id, domain=add_domain,
+                                                  add=self.code_id)
                         domain_db_set.clear()
                         domain_xml_set.clear()
 
-                        ip_db = IP.select().where(IP.item == content_id, IP.mask == 32)
+                        ip_db = IP.select().where(IP.item == item_db.id, IP.mask == 32, IP.purge >> None)
 
                         for ip_item in ip_db:
                             ip_db_set.add(ip_item.ip)
@@ -418,16 +440,18 @@ class Core(object):
                                 logger.info('Delete id %s ip: %s', content_id, delete_ip_set)
                                 ip_inform_del_set.update(delete_ip_set)
                                 for delete_ip in delete_ip_set:
-                                    IP.update(purge=self.code_id).where(IP.ip == delete_ip).execute()
+                                    IP.update(purge=self.code_id).where(IP.item == item_db.id, IP.ip == delete_ip,
+                                                                        IP.mask == 32, IP.purge >> None).execute()
                             if len(add_ip_set) > 0:
                                 logger.info('Add id %s ip: %s', content_id, add_ip_set)
                                 ip_inform_add_set.update(add_ip_set)
                                 for add_ip in add_ip_set:
-                                    IP.create(item=content_id, ip=add_ip, add=self.code_id)
+                                    IP.create(item=item_db.id, content_id=item_db.content_id, ip=add_ip,
+                                              add=self.code_id)
                         ip_db_set.clear()
                         ip_xml_set.clear()
 
-                        sub_ip_db = IP.select().where(IP.item == content_id, IP.mask < 32)
+                        sub_ip_db = IP.select().where(IP.item == item_db.id, IP.mask < 32, IP.purge >> None)
 
                         for sub_ip_item in sub_ip_db:
                             sub_ip_db_set.add(str(sub_ip_item.ip) + '/' + str(sub_ip_item.mask))
@@ -442,7 +466,8 @@ class Core(object):
                                     del_subnet = str(delete_sub_ip).split('/')
                                     del_ip = del_subnet[0]
                                     del_mask = del_subnet[1]
-                                    IP.update(purge=self.code_id).where(IP.ip == del_ip, IP.mask == del_mask).execute()
+                                    IP.update(purge=self.code_id).where(IP.item == item_db.id, IP.ip == del_ip,
+                                                                        IP.mask == del_mask, IP.purge >> None).execute()
                             if len(add_sub_ip_set) > 0:
                                 logger.info('Add id %s subnet: %s', content_id, add_sub_ip_set)
                                 sub_ip_inform_add_set.update(add_sub_ip_set)
@@ -450,9 +475,13 @@ class Core(object):
                                     add_subnet = str(add_sub_ip).split('/')
                                     add_ip = add_subnet[0]
                                     add_mask = add_subnet[1]
-                                    IP.create(item=content_id, ip=add_ip, mask=add_mask, add=self.code_id)
+                                    IP.create(item=item_db.id, content_id=item_db.content_id, ip=add_ip, mask=add_mask,
+                                              add=self.code_id)
+                        item_db.save()
                         sub_ip_db_set.clear()
                         sub_ip_xml_set.clear()
+
+            self.cleaner()
 
             if (
                 len(url_inform_del_set) == 0 and
@@ -478,12 +507,12 @@ class Core(object):
         else:
             return 0, dict()
 
-    def cleaner(self, cfg):
+    def cleaner(self):
+        logger.info('cleaner run')
         # history = History.select(History.id).order_by(History.id.desc()).limit(cfg.DiffCount())
         # Item.delete().where(~(Item.purge << history)).execute()
-        history_del = History.select(History.id).order_by(History.id.desc()).offset(cfg.DiffCount())
+        history_del = History.select(History.id).order_by(History.id.desc()).offset(self.cfg.DiffCount())
         Item.delete().where(Item.purge << history_del).execute()
         IP.delete().where(IP.purge << history_del).execute()
         Domain.delete().where(Domain.purge << history_del).execute()
         URL.delete().where(URL.purge << history_del).execute()
-

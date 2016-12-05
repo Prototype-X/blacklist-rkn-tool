@@ -3,7 +3,7 @@
 __author__ = 'maximus'
 
 from peewee import Proxy, Model, CharField, TextField, DateField, DateTimeField, IntegerField, BigIntegerField, \
-                   BooleanField, SqliteDatabase, MySQLDatabase, PostgresqlDatabase, ForeignKeyField
+                   BooleanField, SqliteDatabase, MySQLDatabase, PostgresqlDatabase, ForeignKeyField, CompositeKey
 import os
 
 import logging
@@ -21,7 +21,7 @@ class Dump(Model):
 
 
 class Item(Model):
-    content_id = BigIntegerField(null=False, index=True, unique=True)
+    content_id = BigIntegerField(null=False, index=True)
     includeTime = DateTimeField(null=False)
     urgencyType = IntegerField(null=False, default=0)
     entryType = IntegerField(null=False)
@@ -38,7 +38,8 @@ class Item(Model):
 
 
 class IP(Model):
-    item = ForeignKeyField(Item, to_field=Item.content_id, on_delete='CASCADE', on_update='CASCADE', index=True)
+    item = ForeignKeyField(Item, on_delete='CASCADE', on_update='CASCADE', index=True)
+    content_id = BigIntegerField(null=False, index=True)
     ip = TextField(null=False)
     mask = IntegerField(null=False, default=32)
     add = BigIntegerField(null=False)
@@ -49,7 +50,8 @@ class IP(Model):
 
 
 class Domain(Model):
-    item = ForeignKeyField(Item, to_field=Item.content_id, on_delete='CASCADE', on_update='CASCADE', index=True)
+    item = ForeignKeyField(Item, on_delete='CASCADE', on_update='CASCADE', index=True)
+    content_id = BigIntegerField(null=False, index=True)
     domain = TextField(null=False)
     add = BigIntegerField(null=False)
     purge = BigIntegerField(null=True)
@@ -59,7 +61,8 @@ class Domain(Model):
 
 
 class URL(Model):
-    item = ForeignKeyField(Item, to_field=Item.content_id, on_delete='CASCADE', on_update='CASCADE', index=True)
+    item = ForeignKeyField(Item, on_delete='CASCADE', on_update='CASCADE', index=True)
+    content_id = BigIntegerField(null=False, index=True)
     url = TextField(null=False)
     add = BigIntegerField(null=False)
     purge = BigIntegerField(null=True)
