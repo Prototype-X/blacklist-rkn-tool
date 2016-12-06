@@ -88,6 +88,8 @@ class Notifier(object):
 class Reporter(object):
     def __init__(self, cfg):
         self.cfg = cfg
+        self.idx_list = [idx.id for idx in History.select(History.id).order_by(
+                    History.id.desc()).limit(self.cfg.DiffCount())]
 
     @staticmethod
     def statistics_show(**data):
@@ -166,117 +168,133 @@ class Reporter(object):
 
     def domain_show(self, bt='ignore', diff=None, rollback=None):
 
-        idx_list = [idx.id for idx in History.select(History.id).order_by(
-                    History.id.desc()).limit(self.cfg.DiffCount())]
-        rb_list = idx_list[:rollback]
-
         if diff is not None:
-            if bt == 'ignore':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).where(Domain.add == idx_list[diff])
-                for domain_row in domain_sql:
-                    print('+' + domain_row.domain)
-
-            elif bt == 'domain':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain',
-                                                                                        Domain.add == idx_list[diff])
-                for join_row in domain_sql:
-                    print('+' + join_row.domain)
-
-            elif bt == 'domain-mask':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain-mask',
-                                                                                        Domain.add == idx_list[diff])
-                for join_row in domain_sql:
-                    print('+' + join_row.domain)
-
-            elif bt == 'default':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'default',
-                                                                                        Domain.add == idx_list[diff])
-                for join_row in domain_sql:
-                    print('+' + join_row.domain)
-
-            if bt == 'ignore':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).where(Domain.purge == idx_list[diff])
-                for domain_row in domain_sql:
-                    print('-' + domain_row.domain)
-
-            elif bt == 'domain':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain',
-                                                                                        Domain.purge == idx_list[diff])
-                for join_row in domain_sql:
-                    print('-' + join_row.domain)
-
-            elif bt == 'domain-mask':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain-mask',
-                                                                                        Domain.purge == idx_list[diff])
-                for join_row in domain_sql:
-                    print('-' + join_row.domain)
-
-            elif bt == 'default':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'default',
-                                                                                        Domain.purge == idx_list[diff])
-                for join_row in domain_sql:
-                    print('-' + join_row.domain)
+            domain_sql = self._domain_diff_sql(diff, bt, 1)
+            self._domain_output(domain_sql, '+')
+            domain_sql = self._domain_diff_sql(diff, bt, 0)
+            self._domain_output(domain_sql, '-')
 
         if rollback is not None:
-            if bt == 'ignore':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).where(~(Domain.add << rb_list))
-                for domain_row in domain_sql:
-                    print(domain_row.domain)
+            domain_sql = self._domain_rollback_sql(rollback, bt)
+            self._domain_output(domain_sql)
 
-            elif bt == 'domain':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain',
-                                                                                        ~(Domain.add << rb_list))
-                for join_row in domain_sql:
-                    print(join_row.domain)
+    def _domain_diff_sql(self, diff, bt, stat):
+        if stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).\
+                         where(Item.blockType == bt, Domain.add == self.idx_list[diff])
+            return domain_sql
+        elif not stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).\
+                         where(Item.blockType == bt, Domain.purge == self.idx_list[diff])
+            return domain_sql
+        elif stat and bt == 'ignore':
+            domain_sql = Domain.select(fn.Distinct(Domain.domain)).where(Domain.add == self.idx_list[diff])
+            return domain_sql
+        elif not stat and bt == 'ignore':
+            domain_sql = Domain.select(fn.Distinct(Domain.domain)).where(Domain.purge == self.idx_list[diff])
+            return domain_sql
 
-            elif bt == 'domain-mask':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain-mask',
-                                                                                        ~(Domain.add << rb_list))
-                for join_row in domain_sql:
-                    print(join_row.domain)
-
-            elif bt == 'default':
-                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'default',
-                                                                                        ~(Domain.add << rb_list))
-                for join_row in domain_sql:
-                    print(join_row.domain)
-
-    @staticmethod
-    def ip_show(bt):
-
+    def _domain_rollback_sql(self, rollback, bt):
+        rb_list = self.idx_list[:rollback]
         if bt == 'ignore':
-            ip_sql = IP.select(fn.Distinct(IP.ip))
-            for ip_row in ip_sql:
-                if ip_row.mask < 32:
-                    print(ip_row.ip + '/' + str(ip_row.mask))
-                else:
-                    print(ip_row.ip)
+            domain_sql = Domain.select(fn.Distinct(Domain.domain)).where(~(Domain.add << rb_list))
+            return domain_sql
+        elif bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask':
+            domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == bt,
+                                                                                    ~(Domain.add << rb_list))
+            return domain_sql
 
-        elif bt == 'ip':
-            ip_sql = IP.select(fn.Distinct(IP.ip)).join(Item).where(Item.blockType == 'ip')
-            for join_row in ip_sql:
-                print(join_row.ip)
+    def ip_show(self, bt='ignore', diff=None, rollback=None):
 
-        elif bt == 'default':
-            ip_sql = IP.select(fn.Distinct(IP.ip)).join(Item).where(Item.blockType == 'default')
-            for join_row in ip_sql:
-                print(join_row.ip)
+        if diff is not None:
+            ip_sql = self._ip_diff_sql(diff, bt, 1)
+            self._ip_output(ip_sql, '+')
+            ip_sql = self._ip_diff_sql(diff, bt, 0)
+            self._ip_output(ip_sql, '-')
 
-        elif bt == 'domain':
-            ip_sql = IP.select(fn.Distinct(IP.ip)).join(Item).where(Item.blockType == 'domain')
-            for join_row in ip_sql:
-                print(join_row.ip)
+        if rollback is not None:
+            ip_sql = self._ip_rollback_sql(rollback, bt)
+            self._ip_output(ip_sql)
 
-        elif bt == 'domain-mask':
-            ip_sql = IP.select(fn.Distinct(IP.ip)).join(Item).where(Item.blockType == 'domain-mask')
-            for join_row in ip_sql:
-                print(join_row.ip)
+    def _ip_rollback_sql(self, rollback, bt):
+        rb_list = self.idx_list[:rollback]
+        if bt == 'ignore':
+            ip_sql = IP.select(fn.Distinct(IP.ip)).where(~(IP.add << rb_list))
+            return ip_sql
+        elif bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask':
+            ip_sql = IP.select(fn.Distinct(IP.ip)).join(Item).where(Item.blockType == bt, ~(IP.add << rb_list))
+            return ip_sql
+
+    def _ip_diff_sql(self, diff, bt, stat):
+        if stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            ip_sql = IP.select(fn.Distinct(IP.ip)).join(Item).where(Item.blockType == bt, IP.add == self.idx_list[diff])
+            return ip_sql
+        elif not stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            ip_sql = IP.select(fn.Distinct(IP.ip)).join(Item).where(Item.blockType == bt,
+                                                                    IP.purge == self.idx_list[diff])
+            return ip_sql
+        elif stat and bt == 'ignore':
+            ip_sql = IP.select(fn.Distinct(IP.ip)).where(IP.add == self.idx_list[diff])
+            return ip_sql
+
+        elif not stat and bt == 'ignore':
+            ip_sql = IP.select(fn.Distinct(IP.ip)).where(IP.purge == self.idx_list[diff])
+            return ip_sql
 
     @staticmethod
-    def url_show():
-        url_sql = URL.select(fn.Distinct(URL.url))
+    def _url_output(url_sql, prefix=''):
         for url_row in url_sql:
-            print(url_row.url)
+            print(prefix + url_row.url)
+
+    @staticmethod
+    def _domain_output(domain_sql, prefix=''):
+        for domain_row in domain_sql:
+            print(prefix + domain_row.domain)
+
+    @staticmethod
+    def _ip_output(ip_sql, prefix=''):
+        for ip_row in ip_sql:
+                if ip_row.mask < 32:
+                    print(prefix + ip_row.ip + '/' + str(ip_row.mask))
+                else:
+                    print(prefix + ip_row.ip)
+
+    def url_show(self, bt='ignore', diff=None, rollback=None):
+        if diff is not None:
+            url_sql = self._url_diff_sql(diff, bt, 1)
+            self._url_output(url_sql, '+')
+            url_sql = self._url_diff_sql(diff, bt, 0)
+            self._url_output(url_sql, '-')
+
+        if rollback is not None:
+            url_sql = self._url_rollback_sql(rollback, bt)
+            self._url_output(url_sql)
+
+    def _url_rollback_sql(self, rollback, bt):
+        rb_list = self.idx_list[:rollback]
+        if bt == 'ignore':
+            url_sql = URL.select(fn.Distinct(URL.url)).where(~(URL.add << rb_list))
+            return url_sql
+        elif bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask':
+            url_sql = URL.select(fn.Distinct(URL.url)).join(Item).where(Item.blockType == bt, ~(URL.add << rb_list))
+            return url_sql
+
+    def _url_diff_sql(self, diff, bt, stat):
+        if stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            url_sql = URL.select(fn.Distinct(URL.url)).join(Item).where(Item.blockType == bt,
+                                                                        URL.add == self.idx_list[diff])
+            return url_sql
+        elif not stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            url_sql = URL.select(fn.Distinct(URL.url)).join(Item).where(Item.blockType == bt,
+                                                                        URL.purge == self.idx_list[diff])
+            return url_sql
+        elif stat and bt == 'ignore':
+            url_sql = URL.select(fn.Distinct(URL.url)).where(URL.add == self.idx_list[diff])
+            return url_sql
+
+        elif not stat and bt == 'ignore':
+            url_sql = URL.select(fn.Distinct(URL.url)).where(URL.purge == self.idx_list[diff])
+            return url_sql
 
     @staticmethod
     def history_show():
@@ -307,7 +325,7 @@ class BlrknCLI(object):
                                  help="history list show")
         self.parser.add_argument('--bt', action='store', default='ignore',
                                  choices=['default', 'ip', 'domain', 'domain-mask'], help='blockType')
-        self.parser.add_argument("-v", "--version", action='version', version='version 1.5.2', help="show version")
+        self.parser.add_argument("-v", "--version", action='version', version='version 2.0.0', help="show version")
 
         self.args = self.parser.parse_args()
 
@@ -323,14 +341,18 @@ class BlrknCLI(object):
         self._cfg_logging()
         logger.info('Starting script.')
 
-        self.report = Reporter(self.cfg)
-
         self.ctl_transact = init_db(self.cfg)
 
+        self.report = Reporter(self.cfg)
+
         if self.ip_print:
-            self.report.ip_show(self.block_type)
+            if self.diff is None and self.rollback is None:
+                self.rollback = 0
+            self.report.ip_show(bt=self.block_type, diff=self.diff, rollback=self.rollback)
         elif self.url_print:
-            self.report.url_show()
+            if self.diff is None and self.rollback is None:
+                self.rollback = 0
+            self.report.url_show(bt=self.block_type, diff=self.diff, rollback=self.rollback)
         elif self.domain_print:
             if self.diff is None and self.rollback is None:
                 self.rollback = 0
