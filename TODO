@@ -15,3 +15,5 @@ todo ссылающиеся на history при добавлении и удал
 todo очистка истории изменений в реестре - функция, параметр DiffCount
 todo очистка таблицы history - функция, параметр HistoryCount
 todo запуск функции очистки из CLI
+
+todo dns resolve domain. pypi: dnspython, py3dns

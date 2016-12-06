@@ -40,8 +40,12 @@ class Item(Model):
 class IP(Model):
     item = ForeignKeyField(Item, on_delete='CASCADE', on_update='CASCADE', index=True)
     content_id = BigIntegerField(null=False, index=True)
+    # version - версия ip 4 или 6
+    # version = IntegerField(null=False, default=4)
     ip = TextField(null=False)
     mask = IntegerField(null=False, default=32)
+    # source - источник записи dump или resolver
+    # source = TextField(null=False)
     add = BigIntegerField(null=False)
     purge = BigIntegerField(null=True)
 

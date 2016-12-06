@@ -9,8 +9,8 @@ import suds.client
 from base64 import b64encode
 import os
 
-API_URL = "http://vigruzki.rkn.gov.ru/services/OperatorRequest/?wsdl"
-# API_URL = "http://vigruzki.rkn.gov.ru/services/OperatorRequestTest/?wsdl"
+# API_URL = "http://vigruzki.rkn.gov.ru/services/OperatorRequest/?wsdl"
+API_URL = "http://vigruzki.rkn.gov.ru/services/OperatorRequestTest/?wsdl"
 
 
 class ZapretInfoException(RuntimeError):

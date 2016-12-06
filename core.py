@@ -509,7 +509,7 @@ class Core(object):
 
     def cleaner(self):
         logger.info('cleaner run')
-        # history = History.select(History.id).order_by(History.id.desc()).limit(cfg.DiffCount())
+        # history = History.select(History.id).order_by(History.id.desc()).limit(self.cfg.DiffCount())
         # Item.delete().where(~(Item.purge << history)).execute()
         history_del = History.select(History.id).order_by(History.id.desc()).offset(self.cfg.DiffCount())
         Item.delete().where(Item.purge << history_del).execute()

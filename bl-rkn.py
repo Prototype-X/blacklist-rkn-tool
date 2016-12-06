@@ -86,8 +86,8 @@ class Notifier(object):
 
 
 class Reporter(object):
-    def __init__(self):
-        pass
+    def __init__(self, cfg):
+        self.cfg = cfg
 
     @staticmethod
     def statistics_show(**data):
@@ -164,27 +164,82 @@ class Reporter(object):
 
         return message
 
-    @staticmethod
-    def domain_show(bt):
-        if bt == 'ignore':
-            domain_sql = Domain.select(fn.Distinct(Domain.domain))
-            for domain_row in domain_sql:
-                print(domain_row.domain)
+    def domain_show(self, bt='ignore', diff=None, rollback=None):
 
-        elif bt == 'domain':
-            domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain')
-            for join_row in domain_sql:
-                print(join_row.domain)
+        idx_list = [idx.id for idx in History.select(History.id).order_by(
+                    History.id.desc()).limit(self.cfg.DiffCount())]
+        rb_list = idx_list[:rollback]
 
-        elif bt == 'domain-mask':
-            domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain-mask')
-            for join_row in domain_sql:
-                print(join_row.domain)
+        if diff is not None:
+            if bt == 'ignore':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).where(Domain.add == idx_list[diff])
+                for domain_row in domain_sql:
+                    print('+' + domain_row.domain)
 
-        elif bt == 'default':
-            domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'default')
-            for join_row in domain_sql:
-                print(join_row.domain)
+            elif bt == 'domain':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain',
+                                                                                        Domain.add == idx_list[diff])
+                for join_row in domain_sql:
+                    print('+' + join_row.domain)
+
+            elif bt == 'domain-mask':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain-mask',
+                                                                                        Domain.add == idx_list[diff])
+                for join_row in domain_sql:
+                    print('+' + join_row.domain)
+
+            elif bt == 'default':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'default',
+                                                                                        Domain.add == idx_list[diff])
+                for join_row in domain_sql:
+                    print('+' + join_row.domain)
+
+            if bt == 'ignore':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).where(Domain.purge == idx_list[diff])
+                for domain_row in domain_sql:
+                    print('-' + domain_row.domain)
+
+            elif bt == 'domain':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain',
+                                                                                        Domain.purge == idx_list[diff])
+                for join_row in domain_sql:
+                    print('-' + join_row.domain)
+
+            elif bt == 'domain-mask':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain-mask',
+                                                                                        Domain.purge == idx_list[diff])
+                for join_row in domain_sql:
+                    print('-' + join_row.domain)
+
+            elif bt == 'default':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'default',
+                                                                                        Domain.purge == idx_list[diff])
+                for join_row in domain_sql:
+                    print('-' + join_row.domain)
+
+        if rollback is not None:
+            if bt == 'ignore':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).where(~(Domain.add << rb_list))
+                for domain_row in domain_sql:
+                    print(domain_row.domain)
+
+            elif bt == 'domain':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain',
+                                                                                        ~(Domain.add << rb_list))
+                for join_row in domain_sql:
+                    print(join_row.domain)
+
+            elif bt == 'domain-mask':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'domain-mask',
+                                                                                        ~(Domain.add << rb_list))
+                for join_row in domain_sql:
+                    print(join_row.domain)
+
+            elif bt == 'default':
+                domain_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item).where(Item.blockType == 'default',
+                                                                                        ~(Domain.add << rb_list))
+                for join_row in domain_sql:
+                    print(join_row.domain)
 
     @staticmethod
     def ip_show(bt):
@@ -232,9 +287,18 @@ class Reporter(object):
 
 class BlrknCLI(object):
     def __init__(self):
+        self.cfg = Config()
+        choice_rb_diff = [i for i in range(self.cfg.DiffCount())]
+
         self.parser = argparse.ArgumentParser(add_help=True,
                                               description='Tool for list of restricted websites '
                                                           'http://vigruzki.rkn.gov.ru/')
+        self.group = self.parser.add_mutually_exclusive_group()
+        self.group.add_argument("--dump", action="store_true", required=False, default=False, help="Get new dump")
+        self.group.add_argument("--diff", action="store", type=int, choices=choice_rb_diff, required=False,
+                                default=None, help="difference dump")
+        self.group.add_argument("--rollback", action="store", type=int, choices=choice_rb_diff, required=False,
+                                default=None, help="rollback dump")
         self.parser.add_argument("--url", action="store_true", required=False, default=False, help="url list show")
         self.parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip list show")
         self.parser.add_argument("--domain", action="store_true", required=False, default=False,
@@ -252,27 +316,33 @@ class BlrknCLI(object):
         self.domain_print = self.args.domain
         self.history_print = self.args.history
         self.block_type = self.args.bt
+        self.dump = self.args.dump
+        self.diff = self.args.diff
+        self.rollback = self.args.rollback
 
-        self.cfg = Config()
         self._cfg_logging()
         logger.info('Starting script.')
 
-        self.rept = Reporter()
+        self.report = Reporter(self.cfg)
 
         self.ctl_transact = init_db(self.cfg)
 
         if self.ip_print:
-            self.rept.ip_show(self.block_type)
+            self.report.ip_show(self.block_type)
         elif self.url_print:
-            self.rept.url_show()
+            self.report.url_show()
         elif self.domain_print:
-            self.rept.domain_show(self.block_type)
+            if self.diff is None and self.rollback is None:
+                self.rollback = 0
+            self.report.domain_show(bt=self.block_type, diff=self.diff, rollback=self.rollback)
         elif self.history_print:
-            self.rept.history_show()
-        else:
+            self.report.history_show()
+        elif self.dump:
             # self._peewee_debug()
-            # self._parse_dump_only()
-            self._get_dump()
+            self._parse_dump_only()
+            # self._get_dump()
+        else:
+            self.parser.print_help()
 
         logger.info('Script stopped.')
 
@@ -293,7 +363,7 @@ class BlrknCLI(object):
                     result_bool, raw_rept = self.dump.parse_dump()
                     if result_bool == 1:
                         if self.cfg.Notify():
-                            message = self.rept.statistics_show(**raw_rept)
+                            message = self.report.statistics_show(**raw_rept)
                             self.notice.send_mail(message)
                     elif result_bool == 2:
                         logger.info('No updates')
