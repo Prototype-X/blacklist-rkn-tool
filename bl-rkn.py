@@ -88,83 +88,68 @@ class Notifier(object):
 class Reporter(object):
     def __init__(self, cfg):
         self.cfg = cfg
-        self.idx_list = [idx.id for idx in History.select(History.id).order_by(
-                    History.id.desc()).limit(self.cfg.DiffCount())]
+        self.idx_list = [idx.id for idx in History.select(History.id).order_by(History.id.desc())
+                         .limit(self.cfg.DiffCount())]
 
-    @staticmethod
-    def statistics_show(**data):
-        domain_count = Domain.select(fn.Count(fn.Distinct(Domain.domain))).scalar()
-        url_count = URL.select(fn.Count(fn.Distinct(URL.url))).scalar()
-        ip_count = IP.select(fn.Count(fn.Distinct(IP.ip))).scalar()
-        id_count = Item.select(fn.Count(fn.Distinct(Item.content_id))).scalar()
+    def statistics_show(self, diff=0, stdout=False):
 
         date_time = datetime.fromtimestamp(int(Dump.get(Dump.param == 'lastDumpDate')
                                                .value)).strftime('%Y-%m-%d %H:%M:%S')
 
         message = 'vigruzki.rkn.gov.ru update: ' + date_time + '\n'
 
-        url_inform_add = data.get('url_add')
-        if len(url_inform_add) > 0:
-            message += '\nURLs added: \n\n'
-            for url_a in url_inform_add:
-                message += url_a + '\n'
+        url_add_sql = self._url_diff_sql(diff, 'ignore', 1)
+        message += '\nURLs added: \n\n'
+        for url_add in url_add_sql:
+            message += url_add.url + '\n'
 
-        ip_inform_add = data.get('ip_add')
-        if len(ip_inform_add) > 0:
-            message += '\nIPs added: \n\n'
-            for ip_a in ip_inform_add:
-                message += ip_a + '\n'
+        ip_add_sql = self._ip_diff_sql(diff, 'ignore', 1)
+        message += '\nIPs added: \n\n'
+        for ip_add in ip_add_sql:
+            if ip_add.mask < 32:
+                message += ip_add.ip + '/' + str(ip_add.mask)
+            else:
+                message += ip_add.ip + '\n'
 
-        sub_ip_inform_add = data.get('sub_ip_add')
-        if len(sub_ip_inform_add) > 0:
-            message += '\nSUBNETs added: \n\n'
-            for sub_ip_a in sub_ip_inform_add:
-                message += sub_ip_a + '\n'
+        domain_add_sql = self._domain_diff_sql(diff, 'ignore', 1)
+        message += '\nDOMAINs added: \n\n'
+        for domain_add in domain_add_sql:
+            message += domain_add.domain + '\n'
 
-        domain_inform_add = data.get('domain_add')
-        if len(domain_inform_add) > 0:
-            message += '\nDOMAINs added: \n\n'
-            for domain_a in domain_inform_add:
-                message += domain_a + '\n'
+        url_del_sql = self._url_diff_sql(diff, 'ignore', 0)
+        message += '\nURLs deleted: \n\n'
+        for url_del in url_del_sql:
+            message += url_del.url + '\n'
 
-        url_inform_del = data.get('url_del')
-        if len(url_inform_del) > 0:
-            message += '\nURLs deleted: \n\n'
-            for url_d in url_inform_del:
-                message += url_d + '\n'
+        ip_del_sql = self._ip_diff_sql(diff, 'ignore', 0)
+        message += '\nIPs deleted: \n\n'
+        for ip_del in ip_del_sql:
+            if ip_del.mask < 32:
+                message += ip_del.ip + '/' + str(ip_del.mask)
+            else:
+                message += ip_del.ip + '\n'
 
-        ip_inform_del = data.get('ip_del')
-        if len(ip_inform_del) > 0:
-            message += '\nIPs deleted: \n\n'
-            for ip_d in ip_inform_del:
-                message += ip_d + '\n'
+        domain_del_sql = self._domain_diff_sql(diff, 'ignore', 0)
+        message += '\nDOMAINs deleted: \n\n'
+        for domain_del in domain_del_sql:
+            message += domain_del.domain + '\n'
 
-        sub_ip_inform_del = data.get('sub_ip_del')
-        if len(sub_ip_inform_del) > 0:
-            message += '\nSUBNETs deleted: \n\n'
-            for sub_ip_d in sub_ip_inform_del:
-                message += sub_ip_d + '\n'
-
-        domain_inform_del = data.get('domain_del')
-        if len(domain_inform_del) > 0:
-            message += '\nDOMAINs deleted: \n\n'
-            for domain_d in domain_inform_del:
-                message += domain_d + '\n'
+        rb_list = self.idx_list[:diff]
+        domain_count = Domain.select(fn.Count(fn.Distinct(Domain.domain))).where(~(Domain.add << rb_list)).scalar()
+        url_count = URL.select(fn.Count(fn.Distinct(URL.url))).where(~(URL.add << rb_list)).scalar()
+        ip_count = IP.select(fn.Count(fn.Distinct(IP.ip))).where(~(IP.add << rb_list)).scalar()
+        id_count = Item.select(fn.Count(fn.Distinct(Item.content_id))).where(~(Item.add << rb_list)).scalar()
 
         message += '\nURLs count: ' + str(url_count) + '\n'
         message += 'IPs count: ' + str(ip_count) + '\n'
         message += 'DOMAINs count: ' + str(domain_count) + '\n'
         message += 'Item count: ' + str(id_count) + '\n'
 
-        id_inform_add = data.get('id_add')
-        if len(id_inform_add) > 0:
-            message += 'Items added: ' + str(len(id_inform_add)) + '\n'
-
-        id_inform_del = data.get('id_del')
-        if len(id_inform_del) > 0:
-            message += 'Items deleted: ' + str(len(id_inform_del)) + '\n'
-
-        return message
+        if stdout:
+            print(message)
+            return False
+        else:
+            return message
 
     def domain_show(self, bt='ignore', diff=None, rollback=None):
 
@@ -317,6 +302,8 @@ class BlrknCLI(object):
                                 default=None, help="difference dump")
         self.group.add_argument("--rollback", action="store", type=int, choices=choice_rb_diff, required=False,
                                 default=None, help="rollback dump")
+        self.group.add_argument("--stat", action="store", type=int, choices=choice_rb_diff, required=False,
+                                default=None, help="dump statistics")
         self.parser.add_argument("--url", action="store_true", required=False, default=False, help="url list show")
         self.parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip list show")
         self.parser.add_argument("--domain", action="store_true", required=False, default=False,
@@ -337,6 +324,7 @@ class BlrknCLI(object):
         self.dump = self.args.dump
         self.diff = self.args.diff
         self.rollback = self.args.rollback
+        self.stat = self.args.stat
 
         self._cfg_logging()
         logger.info('Starting script.')
@@ -344,21 +332,18 @@ class BlrknCLI(object):
         self.ctl_transact = init_db(self.cfg)
 
         self.report = Reporter(self.cfg)
-
-        if self.ip_print:
-            if self.diff is None and self.rollback is None:
+        if self.diff is None and self.rollback is None:
                 self.rollback = 0
+        if self.ip_print:
             self.report.ip_show(bt=self.block_type, diff=self.diff, rollback=self.rollback)
         elif self.url_print:
-            if self.diff is None and self.rollback is None:
-                self.rollback = 0
             self.report.url_show(bt=self.block_type, diff=self.diff, rollback=self.rollback)
         elif self.domain_print:
-            if self.diff is None and self.rollback is None:
-                self.rollback = 0
             self.report.domain_show(bt=self.block_type, diff=self.diff, rollback=self.rollback)
         elif self.history_print:
             self.report.history_show()
+        elif self.stat is not None:
+            self.report.statistics_show(diff=self.stat, stdout=True)
         elif self.dump:
             # self._peewee_debug()
             self._parse_dump_only()
@@ -382,13 +367,11 @@ class BlrknCLI(object):
                 signer.sign_request()
             if self.dump.send_request():
                 if self.dump.get_request():
-                    result_bool, raw_rept = self.dump.parse_dump()
+                    result_bool = self.dump.parse_dump()
                     if result_bool == 1:
                         if self.cfg.Notify():
-                            message = self.report.statistics_show(**raw_rept)
+                            message = self.report.statistics_show()
                             self.notice.send_mail(message)
-                    elif result_bool == 2:
-                        logger.info('No updates')
                     elif result_bool == 0:
                         if self.cfg.Notify():
                             message = 'Houston, we have a problem'

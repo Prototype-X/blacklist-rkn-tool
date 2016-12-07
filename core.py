@@ -154,358 +154,298 @@ class Core(object):
         return False
 
     def parse_dump(self):
-        if os.path.exists(self.path_py + '/dump.xml'):
-            logger.info('dump.xml already exists.')
-            tree_xml = ElementTree().parse(self.path_py + '/dump.xml')
+        if not os.path.exists(self.path_py + '/dump.xml'):
+            logger.info('dump.xml not found: s%', self.path_py + '/dump.xml')
+            return 0
+        logger.info('dump.xml already exists.')
+        tree_xml = ElementTree().parse(self.path_py + '/dump.xml')
 
-            dt = datetime.strptime(tree_xml.attrib['updateTime'][:19], '%Y-%m-%dT%H:%M:%S')
-            update_time = int(time.mktime(dt.timetuple()))
-            Dump.update(value=update_time).where(Dump.param == 'lastDumpDate').execute()
-            logger.info('Got updateTime: %s.', update_time)
+        dt = datetime.strptime(tree_xml.attrib['updateTime'][:19], '%Y-%m-%dT%H:%M:%S')
+        update_time = int(time.mktime(dt.timetuple()))
+        Dump.update(value=update_time).where(Dump.param == 'lastDumpDate').execute()
+        logger.info('Got updateTime: %s.', update_time)
 
-            dt = datetime.strptime(tree_xml.attrib['updateTimeUrgently'][:19], '%Y-%m-%dT%H:%M:%S')
-            update_time_urgently = int(time.mktime(dt.timetuple()))
-            Dump.update(value=update_time_urgently).where(Dump.param == 'lastDumpDateUrgently').execute()
-            logger.info('Got updateTimeUrgently: %s.', update_time_urgently)
+        dt = datetime.strptime(tree_xml.attrib['updateTimeUrgently'][:19], '%Y-%m-%dT%H:%M:%S')
+        update_time_urgently = int(time.mktime(dt.timetuple()))
+        Dump.update(value=update_time_urgently).where(Dump.param == 'lastDumpDateUrgently').execute()
+        logger.info('Got updateTimeUrgently: %s.', update_time_urgently)
 
-            list_xml = tree_xml.findall(".//*[@id]")
-            id_set_dump = set()
-            id_set_db = set()
-            for content_xml in list_xml:
-                # print(content_xml.tag, content_xml.attrib, content_xml.text)
-                id_set_dump.add(int(content_xml.attrib['id']))
+        list_xml = tree_xml.findall(".//*[@id]")
+        id_set_dump = set()
+        id_set_db = set()
+        for content_xml in list_xml:
+            # print(content_xml.tag, content_xml.attrib, content_xml.text)
+            id_set_dump.add(int(content_xml.attrib['id']))
 
-            select_content_id_db = Item.select(Item.content_id).where(Item.purge >> None)
-            for content_db in select_content_id_db:
-                id_set_db.add(content_db.content_id)
+        select_content_id_db = Item.select(Item.content_id).where(Item.purge >> None)
+        for content_db in select_content_id_db:
+            id_set_db.add(content_db.content_id)
 
-            common_id_set = id_set_dump.intersection(id_set_db)
-            delete_id_set = id_set_db.difference(common_id_set)
-            add_id_set = id_set_dump.difference(common_id_set)
-            # print(delete_id_set)
-            # print(add_id_set)
+        common_id_set = id_set_dump.intersection(id_set_db)
+        delete_id_set = id_set_db.difference(common_id_set)
+        add_id_set = id_set_dump.difference(common_id_set)
+        # print(delete_id_set)
+        # print(add_id_set)
 
-            url_inform_del_set = set()
-            ip_inform_del_set = set()
-            sub_ip_inform_del_set = set()
-            domain_inform_del_set = set()
-            id_inform_del_set = set()
-
-            url_inform_add_set = set()
-            ip_inform_add_set = set()
-            sub_ip_inform_add_set = set()
-            domain_inform_add_set = set()
-            id_inform_add_set = set()
-
-            if len(delete_id_set) > 0:
-                with self.transact.atomic():
-                    for del_item in delete_id_set:
-                        logger.info('Full delete Item, IP, Domain, URL id: %s.', del_item)
-
-                        id_inform_del_set.add(del_item)
-                        url_del_sql = URL.select().where(URL.content_id == del_item)
-                        for url_del_txt in url_del_sql:
-                            url_inform_del_set.add(url_del_txt.url)
-                        ip_del_sql = IP.select().where(IP.content_id == del_item)
-                        for ip_del_txt in ip_del_sql:
-                            ip_inform_del_set.add(ip_del_txt.ip)
-                        for sub_ip_del_txt in ip_del_sql:
-                            if sub_ip_del_txt.mask < 32:
-                                sub_ip_inform_del_set.add(sub_ip_del_txt.ip + '/' + str(sub_ip_del_txt.mask))
-                        domain_del_sql = Domain.select().where(Domain.content_id == del_item)
-                        for domain_del_txt in domain_del_sql:
-                            domain_inform_del_set.add(domain_del_txt.domain)
-
-                        Domain.update(purge=self.code_id).where(Domain.content_id == del_item,
-                                                                Domain.purge >> None).execute()
-                        URL.update(purge=self.code_id).where(URL.content_id == del_item, URL.purge >> None).execute()
-                        IP.update(purge=self.code_id).where(IP.content_id == del_item, IP.purge >> None).execute()
-                        Item.update(purge=self.code_id).where(Item.content_id == del_item, Item.purge >> None).execute()
-
-            if len(add_id_set) > 0:
-                include_time = str()
-                urgency_type = int()
-                entry_type = int()
-                block_type = str()
-                hash_value = str()
-                with self.transact.atomic():
-                    for new_item in add_id_set:
-                        logger.info('New Item, IP, Domain, URL id: %s.', new_item)
-                        id_inform_add_set.add(new_item)
-                        new_item_xml = tree_xml.find(".//content[@id='" + str(new_item) + "']")
-                        for data_xml in new_item_xml.iter():
-                            if data_xml.tag == 'content':
-                                content_id = int(data_xml.attrib['id'])
-                                try:
-                                    urgency_type = int(data_xml.attrib['urgencyType'])
-                                except KeyError:
-                                    urgency_type = 0
-                                include_time = self.date_time_xml_to_db(data_xml.attrib['includeTime'])
-                                try:
-                                    block_type = data_xml.attrib['blockType']
-                                except KeyError:
-                                    block_type = 'default'
-                                entry_type = int(data_xml.attrib['entryType'])
-                                hash_value = data_xml.attrib['hash']
-                            if data_xml.tag == 'decision':
-                                decision_date = data_xml.attrib['date']
-                                decision_number = data_xml.attrib['number']
-                                decision_org = data_xml.attrib['org']
-                                item_new = Item(content_id=content_id, includeTime=include_time,
-                                                urgencyType=urgency_type, entryType=entry_type, blockType=block_type,
-                                                hashRecord=hash_value, decision_date=decision_date,
-                                                decision_num=decision_number, decision_org=decision_org,
-                                                add=self.code_id)
-                                item_new.save()
-                            if data_xml.tag == 'url':
-                                url = data_xml.text
-                                url_inform_add_set.add(url)
-                                URL.create(item=item_new.id, content_id=content_id, url=url, add=self.code_id)
-                            if data_xml.tag == 'domain':
-                                domain = data_xml.text
-                                domain_inform_add_set.add(domain)
-                                Domain.create(item=item_new.id, content_id=content_id, domain=domain, add=self.code_id)
-                            if data_xml.tag == 'ip':
-                                ip = data_xml.text
-                                ip_inform_add_set.add(ip)
-                                IP.create(item=item_new.id, content_id=content_id, ip=ip, add=self.code_id)
-                            if data_xml.tag == 'ipSubnet':
-                                net = data_xml.text.split('/')
-                                sub_ip_inform_add_set.add(data_xml.text)
-                                ip = net[0]
-                                mask = net[1]
-                                IP.create(item=item_new.id, content_id=content_id, ip=ip, mask=mask, add=self.code_id)
-
-            url_db_set = set()
-            url_xml_set = set()
-            ip_db_set = set()
-            ip_xml_set = set()
-            sub_ip_xml_set = set()
-            sub_ip_db_set = set()
-            domain_db_set = set()
-            domain_xml_set = set()
-            data_update = False
+        if len(delete_id_set) > 0:
             with self.transact.atomic():
-                for item_xml in list_xml:
-                    for data_xml in item_xml.iter():
-                        # print(data_xml.tag, data_xml.attrib, data_xml.text)
+                for del_item in delete_id_set:
+                    logger.info('Full delete Item, IP, Domain, URL id: %s.', del_item)
+
+                    Item.update(purge=self.code_id).where(Item.content_id == del_item, Item.purge >> None).execute()
+                    Domain.update(purge=self.code_id).where(Domain.content_id == del_item,
+                                                            Domain.purge >> None).execute()
+                    URL.update(purge=self.code_id).where(URL.content_id == del_item, URL.purge >> None).execute()
+                    IP.update(purge=self.code_id).where(IP.content_id == del_item, IP.purge >> None).execute()
+
+        if len(add_id_set) > 0:
+            include_time = str()
+            urgency_type = int()
+            entry_type = int()
+            block_type = str()
+            hash_value = str()
+            with self.transact.atomic():
+                for new_item in add_id_set:
+                    logger.info('New Item, IP, Domain, URL id: %s.', new_item)
+                    new_item_xml = tree_xml.find(".//content[@id='" + str(new_item) + "']")
+                    for data_xml in new_item_xml.iter():
                         if data_xml.tag == 'content':
                             content_id = int(data_xml.attrib['id'])
+                            try:
+                                urgency_type = int(data_xml.attrib['urgencyType'])
+                            except KeyError:
+                                urgency_type = 0
+                            include_time = self.date_time_xml_to_db(data_xml.attrib['includeTime'])
+                            try:
+                                block_type = data_xml.attrib['blockType']
+                            except KeyError:
+                                block_type = 'default'
+                            entry_type = int(data_xml.attrib['entryType'])
                             hash_value = data_xml.attrib['hash']
-                            item_db = Item.get(Item.content_id == content_id, Item.purge >> None)
-
-                            if hash_value != item_db.hashRecord:
-                                logger.info('Hashes not equal, update hash id: %s', content_id)
-                                try:
-                                    urgency_type = int(data_xml.attrib['urgencyType'])
-                                except KeyError:
-                                    urgency_type = 0
-                                include_time = self.date_time_xml_to_db(data_xml.attrib['includeTime'])
-                                try:
-                                    block_type = data_xml.attrib['blockType']
-                                except KeyError:
-                                    block_type = 'default'
-                                entry_type = int(data_xml.attrib['entryType'])
-                                item_db.hashRecord = hash_value
-                                # Item.update(purge=None).where(Item.content_id == content_id).execute()
-                                data_update = True
-                            else:
-                                data_update = False
-                                break
-
                         if data_xml.tag == 'decision':
                             decision_date = data_xml.attrib['date']
                             decision_number = data_xml.attrib['number']
                             decision_org = data_xml.attrib['org']
-                            # print(item_db)
-                            if str(item_db.includeTime) != include_time:
-                                logger.info('content_id: %s.', content_id)
-                                logger.info('XML includeTime: %s.', include_time)
-                                logger.info('DB includeTime: %s.', item_db.includeTime)
-                                item_db.includeTime = include_time
-                                # Item.update(includeTime=include_time).where(Item.content_id == content_id,
-                                #                                             Item.purge >> None).execute()
-                            if item_db.urgencyType != urgency_type:
-                                logger.info('content_id: %s.', content_id)
-                                logger.info('XML urgencyType: %s.', urgency_type)
-                                logger.info('DB urgencyType: %s.', item_db.urgencyType)
-                                item_db.urgencyType = urgency_type
-                                # Item.update(urgencyType=urgency_type).where(Item.content_id == content_id,
-                                #                                             Item.purge >> None).execute()
-                            if item_db.blockType != block_type:
-                                logger.info('content_id: %s.', content_id)
-                                logger.info('XML blockType: %s.', block_type)
-                                logger.info('DB blockType: %s.', item_db.blockType)
-                                item_db.blockType = block_type
-                                # Item.update(blockType=block_type).where(Item.content_id == content_id,
-                                #                                         Item.purge >> None).execute()
-                            if item_db.entryType != entry_type:
-                                logger.info('content_id: %s.', content_id)
-                                logger.info('XML entryType: %s.', entry_type)
-                                logger.info('DB entryType: %s.', item_db.entryType)
-                                item_db.entryType = entry_type
-                                # Item.update(entryType=entry_type).where(Item.content_id == content_id,
-                                #                                         Item.purge >> None).execute()
-                            if str(item_db.decision_date) != decision_date:
-                                logger.info('content_id: %s.', content_id)
-                                logger.info('XML date: %s.', decision_date)
-                                logger.info('DB date: %s.', str(item_db.decision_date))
-                                item_db.decision_date = decision_date
-                                # Item.update(decision_date=decision_date).where(Item.content_id == content_id,
-                                #                                                Item.purge >> None).execute()
-                            if item_db.decision_num != decision_number:
-                                logger.info('content_id: %s.', content_id)
-                                logger.info('XML number: %s.', decision_number)
-                                logger.info('DB number: %s.', item_db.decision_num)
-                                item_db.decision_num = decision_number
-                                # Item.update(decision_num=decision_number).where(Item.content_id == content_id,
-                                #                                                 Item.purge >> None).execute()
-                            if item_db.decision_org != decision_org:
-                                logger.info('content_id: %s.', content_id)
-                                logger.info('XML org: %s.', decision_org)
-                                logger.info('DB org: %s.', item_db.decision_org)
-                                item_db.decision_org = decision_org
-                                # Item.update(decision_org=decision_org).where(Item.content_id == content_id,
-                                #                                              Item.purge >> None).execute()
-
+                            item_new = Item(content_id=content_id, includeTime=include_time,
+                                            urgencyType=urgency_type, entryType=entry_type, blockType=block_type,
+                                            hashRecord=hash_value, decision_date=decision_date,
+                                            decision_num=decision_number, decision_org=decision_org,
+                                            add=self.code_id)
+                            item_new.save()
                         if data_xml.tag == 'url':
-                            url_xml_set.add(data_xml.text)
-
+                            url = data_xml.text
+                            URL.create(item=item_new.id, content_id=content_id, url=url, add=self.code_id)
                         if data_xml.tag == 'domain':
-                            domain_xml_set.add(data_xml.text)
-
+                            domain = data_xml.text
+                            Domain.create(item=item_new.id, content_id=content_id, domain=domain, add=self.code_id)
                         if data_xml.tag == 'ip':
-                            ip_xml_set.add(data_xml.text)
-
+                            ip = data_xml.text
+                            IP.create(item=item_new.id, content_id=content_id, ip=ip, add=self.code_id)
                         if data_xml.tag == 'ipSubnet':
-                            sub_ip_xml_set.add(data_xml.text)
+                            net = data_xml.text.split('/')
+                            ip = net[0]
+                            mask = net[1]
+                            IP.create(item=item_new.id, content_id=content_id, ip=ip, mask=mask, add=self.code_id)
 
-                    if data_update:
-                        url_db = URL.select().where(URL.item == item_db.id, URL.purge >> None)
+        url_db_set = set()
+        url_xml_set = set()
+        ip_db_set = set()
+        ip_xml_set = set()
+        sub_ip_xml_set = set()
+        sub_ip_db_set = set()
+        domain_db_set = set()
+        domain_xml_set = set()
+        data_update = False
+        with self.transact.atomic():
+            for item_xml in list_xml:
+                for data_xml in item_xml.iter():
+                    # print(data_xml.tag, data_xml.attrib, data_xml.text)
+                    if data_xml.tag == 'content':
+                        content_id = int(data_xml.attrib['id'])
+                        hash_value = data_xml.attrib['hash']
+                        item_db = Item.get(Item.content_id == content_id, Item.purge >> None)
 
-                        for url_item in url_db:
-                            url_db_set.add(url_item.url)
-                        if url_db_set != url_xml_set:
-                            common_url_set = url_xml_set.intersection(url_db_set)
-                            delete_url_set = url_db_set.difference(common_url_set)
-                            add_url_set = url_xml_set.difference(common_url_set)
-                            if len(delete_url_set) > 0:
-                                logger.info('Delete id %s URL: %s', content_id, delete_url_set)
-                                url_inform_del_set.update(delete_url_set)
-                                for delete_url in delete_url_set:
-                                    URL.update(purge=self.code_id).where(URL.item == item_db.id, URL.url == delete_url,
-                                                                         URL.purge >> None).execute()
-                            if len(add_url_set) > 0:
-                                logger.info('Add id %s URL: %s', content_id, add_url_set)
-                                url_inform_add_set.update(add_url_set)
-                                for add_url in add_url_set:
-                                    URL.create(item=item_db.id, content_id=item_db.content_id, url=add_url,
-                                               add=self.code_id)
-                        url_db_set.clear()
-                        url_xml_set.clear()
+                        if hash_value != item_db.hashRecord:
+                            logger.info('Hashes not equal, update hash id: %s', content_id)
+                            try:
+                                urgency_type = int(data_xml.attrib['urgencyType'])
+                            except KeyError:
+                                urgency_type = 0
+                            include_time = self.date_time_xml_to_db(data_xml.attrib['includeTime'])
+                            try:
+                                block_type = data_xml.attrib['blockType']
+                            except KeyError:
+                                block_type = 'default'
+                            entry_type = int(data_xml.attrib['entryType'])
+                            item_db.hashRecord = hash_value
+                            # Item.update(purge=None).where(Item.content_id == content_id).execute()
+                            data_update = True
+                        else:
+                            data_update = False
+                            break
 
-                        domain_db = Domain.select().where(Domain.item == item_db.id, Domain.purge >> None)
+                    if data_xml.tag == 'decision':
+                        decision_date = data_xml.attrib['date']
+                        decision_number = data_xml.attrib['number']
+                        decision_org = data_xml.attrib['org']
+                        # print(item_db)
+                        if str(item_db.includeTime) != include_time:
+                            logger.info('content_id: %s.', content_id)
+                            logger.info('XML includeTime: %s.', include_time)
+                            logger.info('DB includeTime: %s.', item_db.includeTime)
+                            item_db.includeTime = include_time
+                            # Item.update(includeTime=include_time).where(Item.content_id == content_id,
+                            #                                             Item.purge >> None).execute()
+                        if item_db.urgencyType != urgency_type:
+                            logger.info('content_id: %s.', content_id)
+                            logger.info('XML urgencyType: %s.', urgency_type)
+                            logger.info('DB urgencyType: %s.', item_db.urgencyType)
+                            item_db.urgencyType = urgency_type
+                            # Item.update(urgencyType=urgency_type).where(Item.content_id == content_id,
+                            #                                             Item.purge >> None).execute()
+                        if item_db.blockType != block_type:
+                            logger.info('content_id: %s.', content_id)
+                            logger.info('XML blockType: %s.', block_type)
+                            logger.info('DB blockType: %s.', item_db.blockType)
+                            item_db.blockType = block_type
+                            # Item.update(blockType=block_type).where(Item.content_id == content_id,
+                            #                                         Item.purge >> None).execute()
+                        if item_db.entryType != entry_type:
+                            logger.info('content_id: %s.', content_id)
+                            logger.info('XML entryType: %s.', entry_type)
+                            logger.info('DB entryType: %s.', item_db.entryType)
+                            item_db.entryType = entry_type
+                            # Item.update(entryType=entry_type).where(Item.content_id == content_id,
+                            #                                         Item.purge >> None).execute()
+                        if str(item_db.decision_date) != decision_date:
+                            logger.info('content_id: %s.', content_id)
+                            logger.info('XML date: %s.', decision_date)
+                            logger.info('DB date: %s.', str(item_db.decision_date))
+                            item_db.decision_date = decision_date
+                            # Item.update(decision_date=decision_date).where(Item.content_id == content_id,
+                            #                                                Item.purge >> None).execute()
+                        if item_db.decision_num != decision_number:
+                            logger.info('content_id: %s.', content_id)
+                            logger.info('XML number: %s.', decision_number)
+                            logger.info('DB number: %s.', item_db.decision_num)
+                            item_db.decision_num = decision_number
+                            # Item.update(decision_num=decision_number).where(Item.content_id == content_id,
+                            #                                                 Item.purge >> None).execute()
+                        if item_db.decision_org != decision_org:
+                            logger.info('content_id: %s.', content_id)
+                            logger.info('XML org: %s.', decision_org)
+                            logger.info('DB org: %s.', item_db.decision_org)
+                            item_db.decision_org = decision_org
+                            # Item.update(decision_org=decision_org).where(Item.content_id == content_id,
+                            #                                              Item.purge >> None).execute()
 
-                        for domain_item in domain_db:
-                            domain_db_set.add(domain_item.domain)
-                        if domain_db_set != domain_xml_set:
-                            common_domain_set = domain_xml_set.intersection(domain_db_set)
-                            delete_domain_set = domain_db_set.difference(common_domain_set)
-                            add_domain_set = domain_xml_set.difference(common_domain_set)
-                            if len(delete_domain_set) > 0:
-                                logger.info('Delete id %s Domain: %s', content_id, delete_domain_set)
-                                domain_inform_del_set.update(delete_domain_set)
-                                for delete_domain in delete_domain_set:
-                                    Domain.update(purge=self.code_id).where(Domain.item == item_db.id,
-                                                                            Domain.domain == delete_domain,
-                                                                            Domain.purge >> None).execute()
-                            if len(add_domain_set) > 0:
-                                logger.info('Add id %s Domain: %s', content_id, add_domain_set)
-                                domain_inform_add_set.update(add_domain_set)
-                                for add_domain in add_domain_set:
-                                    Domain.create(item=item_db.id, content_id=item_db.content_id, domain=add_domain,
-                                                  add=self.code_id)
-                        domain_db_set.clear()
-                        domain_xml_set.clear()
+                    if data_xml.tag == 'url':
+                        url_xml_set.add(data_xml.text)
 
-                        ip_db = IP.select().where(IP.item == item_db.id, IP.mask == 32, IP.purge >> None)
+                    if data_xml.tag == 'domain':
+                        domain_xml_set.add(data_xml.text)
 
-                        for ip_item in ip_db:
-                            ip_db_set.add(ip_item.ip)
-                        if ip_db_set != ip_xml_set:
-                            common_ip_set = ip_xml_set.intersection(ip_db_set)
-                            delete_ip_set = ip_db_set.difference(common_ip_set)
-                            add_ip_set = ip_xml_set.difference(common_ip_set)
-                            if len(delete_ip_set) > 0:
-                                logger.info('Delete id %s ip: %s', content_id, delete_ip_set)
-                                ip_inform_del_set.update(delete_ip_set)
-                                for delete_ip in delete_ip_set:
-                                    IP.update(purge=self.code_id).where(IP.item == item_db.id, IP.ip == delete_ip,
-                                                                        IP.mask == 32, IP.purge >> None).execute()
-                            if len(add_ip_set) > 0:
-                                logger.info('Add id %s ip: %s', content_id, add_ip_set)
-                                ip_inform_add_set.update(add_ip_set)
-                                for add_ip in add_ip_set:
-                                    IP.create(item=item_db.id, content_id=item_db.content_id, ip=add_ip,
+                    if data_xml.tag == 'ip':
+                        ip_xml_set.add(data_xml.text)
+
+                    if data_xml.tag == 'ipSubnet':
+                        sub_ip_xml_set.add(data_xml.text)
+
+                if data_update:
+                    url_db = URL.select().where(URL.item == item_db.id, URL.purge >> None)
+
+                    for url_item in url_db:
+                        url_db_set.add(url_item.url)
+                    if url_db_set != url_xml_set:
+                        common_url_set = url_xml_set.intersection(url_db_set)
+                        delete_url_set = url_db_set.difference(common_url_set)
+                        add_url_set = url_xml_set.difference(common_url_set)
+                        if len(delete_url_set) > 0:
+                            logger.info('Delete id %s URL: %s', content_id, delete_url_set)
+                            for delete_url in delete_url_set:
+                                URL.update(purge=self.code_id).where(URL.item == item_db.id, URL.url == delete_url,
+                                                                     URL.purge >> None).execute()
+                        if len(add_url_set) > 0:
+                            logger.info('Add id %s URL: %s', content_id, add_url_set)
+                            for add_url in add_url_set:
+                                URL.create(item=item_db.id, content_id=item_db.content_id, url=add_url,
+                                           add=self.code_id)
+                    url_db_set.clear()
+                    url_xml_set.clear()
+
+                    domain_db = Domain.select().where(Domain.item == item_db.id, Domain.purge >> None)
+
+                    for domain_item in domain_db:
+                        domain_db_set.add(domain_item.domain)
+                    if domain_db_set != domain_xml_set:
+                        common_domain_set = domain_xml_set.intersection(domain_db_set)
+                        delete_domain_set = domain_db_set.difference(common_domain_set)
+                        add_domain_set = domain_xml_set.difference(common_domain_set)
+                        if len(delete_domain_set) > 0:
+                            logger.info('Delete id %s Domain: %s', content_id, delete_domain_set)
+                            for delete_domain in delete_domain_set:
+                                Domain.update(purge=self.code_id).where(Domain.item == item_db.id,
+                                                                        Domain.domain == delete_domain,
+                                                                        Domain.purge >> None).execute()
+                        if len(add_domain_set) > 0:
+                            logger.info('Add id %s Domain: %s', content_id, add_domain_set)
+                            for add_domain in add_domain_set:
+                                Domain.create(item=item_db.id, content_id=item_db.content_id, domain=add_domain,
                                               add=self.code_id)
-                        ip_db_set.clear()
-                        ip_xml_set.clear()
+                    domain_db_set.clear()
+                    domain_xml_set.clear()
 
-                        sub_ip_db = IP.select().where(IP.item == item_db.id, IP.mask < 32, IP.purge >> None)
+                    ip_db = IP.select().where(IP.item == item_db.id, IP.mask == 32, IP.purge >> None)
 
-                        for sub_ip_item in sub_ip_db:
-                            sub_ip_db_set.add(str(sub_ip_item.ip) + '/' + str(sub_ip_item.mask))
-                        if sub_ip_db_set != sub_ip_xml_set:
-                            common_sub_ip_set = sub_ip_xml_set.intersection(sub_ip_db_set)
-                            delete_sub_ip_set = sub_ip_db_set.difference(common_sub_ip_set)
-                            add_sub_ip_set = sub_ip_xml_set.difference(common_sub_ip_set)
-                            if len(delete_sub_ip_set) > 0:
-                                logger.info('Delete id %s subnet: %s', content_id, delete_sub_ip_set)
-                                sub_ip_inform_del_set.update(delete_sub_ip_set)
-                                for delete_sub_ip in delete_sub_ip_set:
-                                    del_subnet = str(delete_sub_ip).split('/')
-                                    del_ip = del_subnet[0]
-                                    del_mask = del_subnet[1]
-                                    IP.update(purge=self.code_id).where(IP.item == item_db.id, IP.ip == del_ip,
-                                                                        IP.mask == del_mask, IP.purge >> None).execute()
-                            if len(add_sub_ip_set) > 0:
-                                logger.info('Add id %s subnet: %s', content_id, add_sub_ip_set)
-                                sub_ip_inform_add_set.update(add_sub_ip_set)
-                                for add_sub_ip in add_sub_ip_set:
-                                    add_subnet = str(add_sub_ip).split('/')
-                                    add_ip = add_subnet[0]
-                                    add_mask = add_subnet[1]
-                                    IP.create(item=item_db.id, content_id=item_db.content_id, ip=add_ip, mask=add_mask,
-                                              add=self.code_id)
-                        item_db.save()
-                        sub_ip_db_set.clear()
-                        sub_ip_xml_set.clear()
+                    for ip_item in ip_db:
+                        ip_db_set.add(ip_item.ip)
+                    if ip_db_set != ip_xml_set:
+                        common_ip_set = ip_xml_set.intersection(ip_db_set)
+                        delete_ip_set = ip_db_set.difference(common_ip_set)
+                        add_ip_set = ip_xml_set.difference(common_ip_set)
+                        if len(delete_ip_set) > 0:
+                            logger.info('Delete id %s ip: %s', content_id, delete_ip_set)
+                            for delete_ip in delete_ip_set:
+                                IP.update(purge=self.code_id).where(IP.item == item_db.id, IP.ip == delete_ip,
+                                                                    IP.mask == 32, IP.purge >> None).execute()
+                        if len(add_ip_set) > 0:
+                            logger.info('Add id %s ip: %s', content_id, add_ip_set)
+                            for add_ip in add_ip_set:
+                                IP.create(item=item_db.id, content_id=item_db.content_id, ip=add_ip,
+                                          add=self.code_id)
+                    ip_db_set.clear()
+                    ip_xml_set.clear()
 
-            self.cleaner()
+                    sub_ip_db = IP.select().where(IP.item == item_db.id, IP.mask < 32, IP.purge >> None)
 
-            if (
-                len(url_inform_del_set) == 0 and
-                len(ip_inform_del_set) == 0 and
-                len(domain_inform_del_set) == 0 and
-                len(id_inform_del_set) == 0 and
-                len(sub_ip_inform_del_set) == 0 and
-                len(url_inform_add_set) == 0 and
-                len(ip_inform_add_set) == 0 and
-                len(domain_inform_add_set) == 0 and
-                len(id_inform_add_set) == 0 and
-                len(sub_ip_inform_add_set) == 0
-            ):
-                return 2, str()
+                    for sub_ip_item in sub_ip_db:
+                        sub_ip_db_set.add(str(sub_ip_item.ip) + '/' + str(sub_ip_item.mask))
+                    if sub_ip_db_set != sub_ip_xml_set:
+                        common_sub_ip_set = sub_ip_xml_set.intersection(sub_ip_db_set)
+                        delete_sub_ip_set = sub_ip_db_set.difference(common_sub_ip_set)
+                        add_sub_ip_set = sub_ip_xml_set.difference(common_sub_ip_set)
+                        if len(delete_sub_ip_set) > 0:
+                            logger.info('Delete id %s subnet: %s', content_id, delete_sub_ip_set)
+                            for delete_sub_ip in delete_sub_ip_set:
+                                del_subnet = str(delete_sub_ip).split('/')
+                                del_ip = del_subnet[0]
+                                del_mask = del_subnet[1]
+                                IP.update(purge=self.code_id).where(IP.item == item_db.id, IP.ip == del_ip,
+                                                                    IP.mask == del_mask, IP.purge >> None).execute()
+                        if len(add_sub_ip_set) > 0:
+                            logger.info('Add id %s subnet: %s', content_id, add_sub_ip_set)
+                            for add_sub_ip in add_sub_ip_set:
+                                add_subnet = str(add_sub_ip).split('/')
+                                add_ip = add_subnet[0]
+                                add_mask = add_subnet[1]
+                                IP.create(item=item_db.id, content_id=item_db.content_id, ip=add_ip, mask=add_mask,
+                                          add=self.code_id)
+                    item_db.save()
+                    sub_ip_db_set.clear()
+                    sub_ip_xml_set.clear()
 
-            report_data = {'url_del': url_inform_del_set, 'ip_del': ip_inform_del_set,
-                           'domain_del': domain_inform_del_set, 'id_del': id_inform_del_set,
-                           'sub_ip_del': sub_ip_inform_del_set, 'url_add': url_inform_add_set,
-                           'ip_add': ip_inform_add_set, 'domain_add': domain_inform_add_set,
-                           'id_add': id_inform_add_set, 'sub_ip_add': sub_ip_inform_add_set}
-
-            return 1, report_data
-        else:
-            return 0, dict()
+        self.cleaner()
+        return 1
 
     def cleaner(self):
         logger.info('cleaner run')
