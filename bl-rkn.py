@@ -329,7 +329,7 @@ class BlrknCLI(object):
 
         self.args = self.parser.parse_args()
 
-        self._peewee_debug()
+        # self._peewee_debug()
 
         self.ip_print = self.args.ip
         self.url_print = self.args.url
