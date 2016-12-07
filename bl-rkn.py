@@ -346,8 +346,8 @@ class BlrknCLI(object):
             self.report.statistics_show(diff=self.stat, stdout=True)
         elif self.dump:
             # self._peewee_debug()
-            self._parse_dump_only()
-            # self._get_dump()
+            # self._parse_dump_only()
+            self._get_dump()
         else:
             self.parser.print_help()
 
