@@ -10,6 +10,7 @@ from base64 import b64decode
 import os.path
 import logging
 import hashlib
+from peewee import fn
 from db import Dump, Item, IP, Domain, URL, History
 from zapretinfo import ZapretInfo
 
@@ -444,8 +445,34 @@ class Core(object):
                     sub_ip_db_set.clear()
                     sub_ip_xml_set.clear()
 
-        self.cleaner()
-        return 1
+        if self.check_diff():
+            self.cleaner()
+            return 1
+        else:
+            logger.info('no updates')
+            self.cleaner()
+            return 2
+
+    def check_diff(self):
+        idx_list = [idx.id for idx in History.select(History.id).where(History.diff == True)
+                    .order_by(History.id.desc()).limit(self.cfg.DiffCount())]
+        ip_diff_add_sql = IP.select(fn.Count(fn.Distinct(IP.ip))).join(Item).where(IP.add == idx_list[0]).scalar()
+        ip_diff_purge_sql = IP.select(fn.Count(fn.Distinct(IP.ip))).join(Item).where(IP.purge == idx_list[0]).scalar()
+        domain_diff_add_sql = Domain.select(fn.Count(fn.Distinct(Domain.domain)))\
+            .join(Item).where(Domain.add == idx_list[0]).scalar()
+        domain_diff_purge_sql = Domain.select(fn.Count(fn.Distinct(Domain.domain)))\
+            .join(Item).where(Domain.purge == idx_list[0]).scalar()
+        url_diff_add_sql = URL.select(fn.Count(fn.Distinct(URL.url)))\
+            .join(Item).where(URL.add == idx_list[0]).scalar()
+        url_diff_purge_sql = URL.select(fn.Count(fn.Distinct(URL.url)))\
+            .join(Item).where(URL.purge == idx_list[0]).scalar()
+
+        if ip_diff_add_sql or ip_diff_purge_sql or domain_diff_add_sql or \
+                domain_diff_purge_sql or url_diff_add_sql or url_diff_purge_sql:
+            return True
+        else:
+            History.update(diff=False).where(History.id == idx_list[0]).execute()
+            return False
 
     def cleaner(self):
         logger.info('cleaner run')

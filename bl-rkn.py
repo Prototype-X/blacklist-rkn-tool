@@ -88,8 +88,8 @@ class Notifier(object):
 class Reporter(object):
     def __init__(self, cfg):
         self.cfg = cfg
-        self.idx_list = [idx.id for idx in History.select(History.id).order_by(History.id.desc())
-                         .limit(self.cfg.DiffCount())]
+        self.idx_list = [idx.id for idx in History.select(History.id).where(History.diff == True)
+                         .order_by(History.id.desc()).limit(self.cfg.DiffCount())]
 
     def statistics_show(self, diff=0, stdout=False):
 
@@ -361,8 +361,8 @@ class BlrknCLI(object):
             self.report.statistics_show(diff=self.stat, stdout=True)
         elif self.dump:
             # self._peewee_debug()
-            # self._parse_dump_only()
-            self._get_dump()
+            self._parse_dump_only()
+            # self._get_dump()
         else:
             self.parser.print_help()
 
