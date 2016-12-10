@@ -11,4 +11,6 @@ sce/
 *.db
 *.tar.gz
 postgres_init.txt
-
+rkn-mtik-fast.py
+rkn-mtik.py
+url_domain.py

@@ -17,3 +17,5 @@ todo очистка таблицы history - функция, параметр Hi
 todo запуск функции очистки из CLI
 
 todo dns resolve domain. pypi: dnspython, py3dns
+todo domains encode (domain.encode('idna')).decode()
+todo url encode urllib.parse.quote(url)
