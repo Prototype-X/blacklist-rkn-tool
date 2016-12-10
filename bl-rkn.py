@@ -240,26 +240,14 @@ class Reporter(object):
     def ip_show(self, bt='ignore', diff=None, rollback=None):
 
         if diff is not None:
-            ip_sql = self._ip_diff_sql(diff, bt, 1)
+            ip_sql = self._ip_dedup_sql(diff, bt, 1)
             self._ip_output(ip_sql, '+')
-            ip_sql = self._ip_diff_sql(diff, bt, 0)
+            ip_sql = self._ip_dedup_sql(diff, bt, 0)
             self._ip_output(ip_sql, '-')
 
         if rollback is not None:
             ip_sql = self._ip_rollback_sql(rollback, bt)
             self._ip_output(ip_sql)
-
-    def _ip_rollback_sql(self, rollback, bt):
-        rb_list = self.idx_list[:rollback]
-        if bt == 'ignore':
-            ip_sql = IP.select(fn.Distinct(IP.ip), IP.mask)\
-                .where(~(IP.add << rb_list) & ((IP.purge >> None) | (IP.purge << rb_list)))
-            return ip_sql
-        elif bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask':
-            ip_sql = IP.select(fn.Distinct(IP.ip), IP.mask)\
-                .join(Item).where((Item.blockType == bt) & ~(IP.add << rb_list) &
-                                  ((IP.purge >> None) | (IP.purge << rb_list)))
-            return ip_sql
 
     def _ip_diff_sql(self, diff, bt, stat):
         if stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
@@ -278,28 +266,68 @@ class Reporter(object):
             ip_sql = IP.select(fn.Distinct(IP.ip), IP.mask).where(IP.purge == self.idx_list[diff])
             return ip_sql
 
+    def _ip_dedup_sql(self, diff, bt, stat):
+        rb_list_add = self.idx_list[:diff+1]
+        rb_list_purge = self.idx_list[:diff]
+        if stat and bt == 'ignore':
+            ip_diff_sql = IP.select(fn.Distinct(IP.ip)).where(IP.add == self.idx_list[diff])
+            ip_dup_sql = IP.select(fn.Distinct(IP.ip))\
+                .where(~(IP.add << rb_list_add) & ((IP.purge >> None) | (IP.purge << rb_list_add)) &
+                       (IP.ip << ip_diff_sql))
+            ip_dedup_sql = IP.select(fn.Distinct(IP.ip), IP.mask).where((IP.add == self.idx_list[diff]) &
+                                                                        ~(IP.ip << ip_dup_sql))
+            return ip_dedup_sql
+        elif not stat and bt == 'ignore':
+            ip_diff_sql = IP.select(fn.Distinct(IP.ip)).where(IP.purge == self.idx_list[diff])
+            ip_dup_sql = IP.select(fn.Distinct(IP.ip))\
+                .where(~(IP.add << rb_list_purge) & (IP.purge >> None) &
+                       (IP.ip << ip_diff_sql))
+            ip_dedup_sql = IP.select(fn.Distinct(IP.ip), IP.mask).where((IP.purge == self.idx_list[diff]) &
+                                                                        ~(IP.ip << ip_dup_sql))
+            return ip_dedup_sql
+        elif stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            ip_diff_sql = IP.select(fn.Distinct(IP.ip)).where(Item.blockType == bt,
+                                                              IP.add == self.idx_list[diff])
+            ip_dup_sql = IP.select(fn.Distinct(IP.ip)).join(Item)\
+                .where((Item.blockType == bt) & ~(IP.add << rb_list_add) &
+                       (IP.purge >> None) & (IP.ip << ip_diff_sql))
+
+            ip_dedup_sql = IP.select(fn.Distinct(IP.ip), IP.mask)\
+                .where((Item.blockType == bt) & (IP.add == self.idx_list[diff]) &
+                       ~(IP.ip << ip_dup_sql))
+            return ip_dedup_sql
+        elif not stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            ip_diff_sql = IP.select(fn.Distinct(IP.ip), IP.mask).where(IP.purge == self.idx_list[diff])
+            ip_dup_sql = IP.select(fn.Distinct(IP.ip), IP.mask).join(Item)\
+                .where((Item.blockType == bt) & ~(IP.add << rb_list_purge) &
+                       (IP.purge >> None) & (IP.ip << ip_diff_sql))
+            ip_dedup_sql = IP.select(fn.Distinct(IP.ip), IP.mask)\
+                .where((Item.blockType == bt) & (IP.purge == self.idx_list[diff]) &
+                       ~(IP.ip << ip_dup_sql))
+            return ip_dedup_sql
+
+    def _ip_rollback_sql(self, rollback, bt):
+        rb_list = self.idx_list[:rollback]
+        if bt == 'ignore':
+            ip_sql = IP.select(fn.Distinct(IP.ip), IP.mask)\
+                .where(~(IP.add << rb_list) & ((IP.purge >> None) | (IP.purge << rb_list)))
+            return ip_sql
+        elif bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask':
+            ip_sql = IP.select(fn.Distinct(IP.ip), IP.mask)\
+                .join(Item).where((Item.blockType == bt) & ~(IP.add << rb_list) &
+                                  ((IP.purge >> None) | (IP.purge << rb_list)))
+            return ip_sql
+
     def url_show(self, bt='ignore', diff=None, rollback=None):
         if diff is not None:
-            url_sql = self._url_diff_sql(diff, bt, 1)
+            url_sql = self._url_dedup_sql(diff, bt, 1)
             self._url_output(url_sql, '+')
-            url_sql = self._url_diff_sql(diff, bt, 0)
+            url_sql = self._url_dedup_sql(diff, bt, 0)
             self._url_output(url_sql, '-')
 
         if rollback is not None:
             url_sql = self._url_rollback_sql(rollback, bt)
             self._url_output(url_sql)
-
-    def _url_rollback_sql(self, rollback, bt):
-        rb_list = self.idx_list[:rollback]
-        if bt == 'ignore':
-            url_sql = URL.select(fn.Distinct(URL.url))\
-                .where(~(URL.add << rb_list) & ((URL.purge >> None) | (URL.purge << rb_list)))
-            return url_sql
-        elif bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask':
-            url_sql = URL.select(fn.Distinct(URL.url))\
-                .join(Item).where((Item.blockType == bt) & ~(URL.add << rb_list) &
-                                  ((URL.purge >> None) | (URL.purge << rb_list)))
-            return url_sql
 
     def _url_diff_sql(self, diff, bt, stat):
         if stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
@@ -316,6 +344,57 @@ class Reporter(object):
 
         elif not stat and bt == 'ignore':
             url_sql = URL.select(fn.Distinct(URL.url)).where(URL.purge == self.idx_list[diff])
+            return url_sql
+
+    def _url_dedup_sql(self, diff, bt, stat):
+        rb_list_add = self.idx_list[:diff+1]
+        rb_list_purge = self.idx_list[:diff]
+        if stat and bt == 'ignore':
+            url_diff_sql = URL.select(fn.Distinct(URL.url)).where(URL.add == self.idx_list[diff])
+            url_dup_sql = URL.select(fn.Distinct(URL.url))\
+                .where(~(URL.add << rb_list_add) & ((URL.purge >> None) | (URL.purge << rb_list_add)) &
+                       (URL.url << url_diff_sql))
+            url_dedup_sql = URL.select(fn.Distinct(URL.url)).where((URL.add == self.idx_list[diff]) &
+                                                                   ~(URL.url << url_dup_sql))
+            return url_dedup_sql
+        elif not stat and bt == 'ignore':
+            url_diff_sql = URL.select(fn.Distinct(URL.url)).where(URL.purge == self.idx_list[diff])
+            url_dup_sql = URL.select(fn.Distinct(URL.url))\
+                .where(~(URL.add << rb_list_purge) & (URL.purge >> None) &
+                       (URL.url << url_diff_sql))
+            url_dedup_sql = URL.select(fn.Distinct(URL.url)).where((URL.purge == self.idx_list[diff]) &
+                                                                   ~(URL.url << url_dup_sql))
+            return url_dedup_sql
+        elif stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            url_diff_sql = URL.select(fn.Distinct(URL.url)).where(Item.blockType == bt, URL.add == self.idx_list[diff])
+            url_dup_sql = URL.select(fn.Distinct(URL.url)).join(Item)\
+                .where((Item.blockType == bt) & ~(URL.add << rb_list_add) &
+                       (URL.purge >> None) & (URL.url << url_diff_sql))
+
+            url_dedup_sql = URL.select(fn.Distinct(URL.url))\
+                .where((Item.blockType == bt) & (URL.add == self.idx_list[diff]) &
+                       ~(URL.url << url_dup_sql))
+            return url_dedup_sql
+        elif not stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            url_diff_sql = URL.select(fn.Distinct(URL.url)).where(URL.purge == self.idx_list[diff])
+            url_dup_sql = URL.select(fn.Distinct(URL.url)).join(Item)\
+                .where((Item.blockType == bt) & ~(URL.add << rb_list_purge) &
+                       (URL.purge >> None) & (URL.url << url_diff_sql))
+            url_dedup_sql = URL.select(fn.Distinct(URL.url))\
+                .where((Item.blockType == bt) & (URL.purge == self.idx_list[diff]) &
+                       ~(URL.url << url_dup_sql))
+            return url_dedup_sql
+
+    def _url_rollback_sql(self, rollback, bt):
+        rb_list = self.idx_list[:rollback]
+        if bt == 'ignore':
+            url_sql = URL.select(fn.Distinct(URL.url))\
+                .where(~(URL.add << rb_list) & ((URL.purge >> None) | (URL.purge << rb_list)))
+            return url_sql
+        elif bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask':
+            url_sql = URL.select(fn.Distinct(URL.url))\
+                .join(Item).where((Item.blockType == bt) & ~(URL.add << rb_list) &
+                                  ((URL.purge >> None) | (URL.purge << rb_list)))
             return url_sql
 
     @staticmethod
