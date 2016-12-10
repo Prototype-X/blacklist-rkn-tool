@@ -158,9 +158,11 @@ class Reporter(object):
     def domain_show(self, bt='ignore', diff=None, rollback=None):
 
         if diff is not None:
-            domain_sql = self._domain_diff_sql(diff, bt, 1)
+            # domain_sql = self._domain_diff_sql(diff, bt, 1)
+            domain_sql = self._domain_dedup_sql(diff, bt, 1)
             self._domain_output(domain_sql, '+')
-            domain_sql = self._domain_diff_sql(diff, bt, 0)
+            # domain_sql = self._domain_diff_sql(diff, bt, 0)
+            domain_sql = self._domain_dedup_sql(diff, bt, 0)
             self._domain_output(domain_sql, '-')
 
         if rollback is not None:
@@ -182,6 +184,46 @@ class Reporter(object):
         elif not stat and bt == 'ignore':
             domain_sql = Domain.select(fn.Distinct(Domain.domain)).where(Domain.purge == self.idx_list[diff])
             return domain_sql
+
+    def _domain_dedup_sql(self, diff, bt, stat):
+        rb_list_add = self.idx_list[:diff+1]
+        rb_list_purge = self.idx_list[:diff]
+        if stat and bt == 'ignore':
+            domain_diff_sql = Domain.select(fn.Distinct(Domain.domain)).where(Domain.add == self.idx_list[diff])
+            domain_dup_sql = Domain.select(fn.Distinct(Domain.domain))\
+                .where(~(Domain.add << rb_list_add) & ((Domain.purge >> None) | (Domain.purge << rb_list_add)) &
+                       (Domain.domain << domain_diff_sql))
+            domain_dedup_sql = Domain.select(fn.Distinct(Domain.domain)).where((Domain.add == self.idx_list[diff]) &
+                                                                               ~(Domain.domain << domain_dup_sql))
+            return domain_dedup_sql
+        elif not stat and bt == 'ignore':
+            domain_diff_sql = Domain.select(fn.Distinct(Domain.domain)).where(Domain.purge == self.idx_list[diff])
+            domain_dup_sql = Domain.select(fn.Distinct(Domain.domain))\
+                .where(~(Domain.add << rb_list_purge) & (Domain.purge >> None) &
+                       (Domain.domain << domain_diff_sql))
+            domain_dedup_sql = Domain.select(fn.Distinct(Domain.domain)).where((Domain.purge == self.idx_list[diff]) &
+                                                                               ~(Domain.domain << domain_dup_sql))
+            return domain_dedup_sql
+        elif stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            domain_diff_sql = Domain.select(fn.Distinct(Domain.domain)).where(Item.blockType == bt,
+                                                                              Domain.add == self.idx_list[diff])
+            domain_dup_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item)\
+                .where((Item.blockType == bt) & ~(Domain.add << rb_list_add) &
+                       (Domain.purge >> None) & (Domain.domain << domain_diff_sql))
+
+            domain_dedup_sql = Domain.select(fn.Distinct(Domain.domain))\
+                .where((Item.blockType == bt) & (Domain.add == self.idx_list[diff]) &
+                       ~(Domain.domain << domain_dup_sql))
+            return domain_dedup_sql
+        elif not stat and (bt == 'ip' or bt == 'default' or bt == 'domain' or bt == 'domain-mask'):
+            domain_diff_sql = Domain.select(fn.Distinct(Domain.domain)).where(Domain.purge == self.idx_list[diff])
+            domain_dup_sql = Domain.select(fn.Distinct(Domain.domain)).join(Item)\
+                .where((Item.blockType == bt) & ~(Domain.add << rb_list_purge) &
+                       (Domain.purge >> None) & (Domain.domain << domain_diff_sql))
+            domain_dedup_sql = Domain.select(fn.Distinct(Domain.domain))\
+                .where((Item.blockType == bt) & (Domain.purge == self.idx_list[diff]) &
+                       ~(Domain.domain << domain_dup_sql))
+            return domain_dedup_sql
 
     def _domain_rollback_sql(self, rollback, bt):
         rb_list = self.idx_list[:rollback]
@@ -361,8 +403,8 @@ class BlrknCLI(object):
             self.report.statistics_show(diff=self.stat, stdout=True)
         elif self.dump:
             # self._peewee_debug()
-            self._parse_dump_only()
-            # self._get_dump()
+            # self._parse_dump_only()
+            self._get_dump()
         else:
             self.parser.print_help()
 
