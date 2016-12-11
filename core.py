@@ -10,6 +10,8 @@ from base64 import b64decode
 import os.path
 import logging
 import hashlib
+import re
+import urllib
 from peewee import fn
 from db import Dump, Item, IP, Domain, URL, History
 from zapretinfo import ZapretInfo
@@ -234,10 +236,17 @@ class Core(object):
                                             add=self.code_id)
                             item_new.save()
                         if data_xml.tag == 'url':
-                            url = data_xml.text
+                            if not self.only_ascii(data_xml.text):
+                                url_split = str(data_xml.text).split(':')
+                                url = url_split[0] + ':' + urllib.parse.quote(url_split[1])
+                            else:
+                                url = data_xml.text
                             URL.create(item=item_new.id, content_id=content_id, url=url, add=self.code_id)
                         if data_xml.tag == 'domain':
-                            domain = data_xml.text
+                            if not self.only_ascii(data_xml.text):
+                                domain = (str(data_xml.text).encode('idna')).decode()
+                            else:
+                                domain = data_xml.text
                             Domain.create(item=item_new.id, content_id=content_id, domain=domain, add=self.code_id)
                         if data_xml.tag == 'ip':
                             ip = data_xml.text
@@ -341,10 +350,19 @@ class Core(object):
                             #                                              Item.purge >> None).execute()
 
                     if data_xml.tag == 'url':
-                        url_xml_set.add(data_xml.text)
+                        if not self.only_ascii(data_xml.text):
+                            url_split = str(data_xml.text).split(':')
+                            url = url_split[0] + ':' + urllib.parse.quote(url_split[1])
+                        else:
+                            url = data_xml.text
+                        url_xml_set.add(url)
 
                     if data_xml.tag == 'domain':
-                        domain_xml_set.add(data_xml.text)
+                        if not self.only_ascii(data_xml.text):
+                            domain = (str(data_xml.text).encode('idna')).decode()
+                        else:
+                            domain = data_xml.text
+                        domain_xml_set.add(domain)
 
                     if data_xml.tag == 'ip':
                         ip_xml_set.add(data_xml.text)
@@ -473,6 +491,19 @@ class Core(object):
         else:
             History.update(diff=False).where(History.id == idx_list[0]).execute()
             return False
+
+    @staticmethod
+    def conv_domain(domain):
+        return (domain.encode('idna')).decode()
+
+    @staticmethod
+    def conv_url(url):
+        url_encode = url.split(':')
+        return url_encode[0] + ':' + urllib.parse.quote(url_encode[1])
+
+    @staticmethod
+    def only_ascii(string):
+        return True if re.match('^[\x00-\x7F]+$', string) else False
 
     def cleaner(self):
         logger.info('cleaner run')
