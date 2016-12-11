@@ -403,19 +403,23 @@ class Reporter(object):
     @staticmethod
     def _url_output(url_sql, prefix=''):
         for url_row in url_sql:
+            logger.info('%s', prefix + url_row.url)
             print(prefix + url_row.url)
 
     @staticmethod
     def _domain_output(domain_sql, prefix=''):
         for domain_row in domain_sql:
+            logger.info('%s', prefix + domain_row.domain)
             print(prefix + domain_row.domain)
 
     @staticmethod
     def _ip_output(ip_sql, prefix=''):
         for ip_row in ip_sql:
             if ip_row.mask < 32:
+                logger.info('%s', prefix + ip_row.ip + '/' + str(ip_row.mask))
                 print(prefix + ip_row.ip + '/' + str(ip_row.mask))
             else:
+                logger.info('%s', prefix + ip_row.ip)
                 print(prefix + ip_row.ip)
 
     @staticmethod
