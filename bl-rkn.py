@@ -158,6 +158,7 @@ class Reporter(object):
     def domain_show(self, bt='ignore', diff=None, rollback=None):
 
         if diff is not None:
+            logger.info('--diff %d --domain', diff)
             # domain_sql = self._domain_diff_sql(diff, bt, 1)
             domain_sql = self._domain_dedup_sql(diff, bt, 1)
             self._domain_output(domain_sql, '+')
@@ -166,6 +167,7 @@ class Reporter(object):
             self._domain_output(domain_sql, '-')
 
         if rollback is not None:
+            logger.info('--rollback %d --domain', rollback)
             domain_sql = self._domain_rollback_sql(rollback, bt)
             self._domain_output(domain_sql)
 
@@ -241,12 +243,14 @@ class Reporter(object):
     def ip_show(self, bt='ignore', diff=None, rollback=None):
 
         if diff is not None:
+            logger.info('--diff %d --ip', diff)
             ip_sql = self._ip_dedup_sql(diff, bt, 1)
             self._ip_output(ip_sql, '+')
             ip_sql = self._ip_dedup_sql(diff, bt, 0)
             self._ip_output(ip_sql, '-')
 
         if rollback is not None:
+            logger.info('--rollback %d --ip', rollback)
             ip_sql = self._ip_rollback_sql(rollback, bt)
             self._ip_output(ip_sql)
 
@@ -322,12 +326,14 @@ class Reporter(object):
 
     def url_show(self, bt='ignore', diff=None, rollback=None):
         if diff is not None:
+            logger.info('--diff %d --url', diff)
             url_sql = self._url_dedup_sql(diff, bt, 1)
             self._url_output(url_sql, '+')
             url_sql = self._url_dedup_sql(diff, bt, 0)
             self._url_output(url_sql, '-')
 
         if rollback is not None:
+            logger.info('--rollback %d --url', rollback)
             url_sql = self._url_rollback_sql(rollback, bt)
             self._url_output(url_sql)
 
