@@ -158,7 +158,7 @@ class Reporter(object):
     def domain_show(self, bt='ignore', diff=None, rollback=None):
 
         if diff is not None:
-            logger.info('--diff %d --domain', diff)
+            logger.info('--diff %d --domain --bt %s', diff, bt)
             # domain_sql = self._domain_diff_sql(diff, bt, 1)
             domain_sql = self._domain_dedup_sql(diff, bt, 1)
             self._domain_output(domain_sql, '+')
@@ -167,7 +167,7 @@ class Reporter(object):
             self._domain_output(domain_sql, '-')
 
         if rollback is not None:
-            logger.info('--rollback %d --domain', rollback)
+            logger.info('--rollback %d --domain --bt %s', rollback)
             domain_sql = self._domain_rollback_sql(rollback, bt)
             self._domain_output(domain_sql)
 
@@ -243,14 +243,14 @@ class Reporter(object):
     def ip_show(self, bt='ignore', diff=None, rollback=None):
 
         if diff is not None:
-            logger.info('--diff %d --ip', diff)
+            logger.info('--diff %d --ip --bt %s', diff, bt)
             ip_sql = self._ip_dedup_sql(diff, bt, 1)
             self._ip_output(ip_sql, '+')
             ip_sql = self._ip_dedup_sql(diff, bt, 0)
             self._ip_output(ip_sql, '-')
 
         if rollback is not None:
-            logger.info('--rollback %d --ip', rollback)
+            logger.info('--rollback %d --ip --bt %s', rollback, bt)
             ip_sql = self._ip_rollback_sql(rollback, bt)
             self._ip_output(ip_sql)
 
@@ -326,14 +326,14 @@ class Reporter(object):
 
     def url_show(self, bt='ignore', diff=None, rollback=None):
         if diff is not None:
-            logger.info('--diff %d --url', diff)
+            logger.info('--diff %d --url --bt %s', diff, bt)
             url_sql = self._url_dedup_sql(diff, bt, 1)
             self._url_output(url_sql, '+')
             url_sql = self._url_dedup_sql(diff, bt, 0)
             self._url_output(url_sql, '-')
 
         if rollback is not None:
-            logger.info('--rollback %d --url', rollback)
+            logger.info('--rollback %d --url --bt %s', rollback, bt)
             url_sql = self._url_rollback_sql(rollback, bt)
             self._url_output(url_sql)
 
