@@ -2,9 +2,24 @@
 # -*- coding: utf-8 -*-
 # __author__ = 'maximus'
 
-def main():
-    pass
+import dns.resolver
+from db import Domain, IP
+from peewee import fn
+from config import Config
 
 
-if __name__ == '__main__':
-    main()
+class Resolve:
+    def __init__(self):
+        pass
+
+    def get_domain(self):
+        pass
+
+    def query(self):
+        pass
+
+    def check_ip(self):
+        pass
+
+    def write_ip_db(self):
+        pass

@@ -53,6 +53,14 @@ class IP(Model):
         database = database_proxy
 
 
+class IPResolve(Model):
+    domain = TextField(null=False)
+    ip = TextField(null=False)
+
+    class Meta(object):
+        database = database_proxy
+
+
 class Domain(Model):
     item = ForeignKeyField(Item, on_delete='CASCADE', on_update='CASCADE', index=True)
     content_id = BigIntegerField(null=False, index=True)
@@ -97,7 +105,7 @@ def init_db(cfg):
     if type_db == 0:
         blacklist_db = SqliteDatabase(path_py + '/' + name_db + '.db', pragmas=(('foreign_keys', 1),))
         database_proxy.initialize(blacklist_db)
-        database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
+        database_proxy.create_tables([Dump, Item, IP, IPResolve, Domain, URL, History], safe=True)
         init_dump_tbl()
         logger.info('Check database: SQLite Ok')
 
@@ -117,7 +125,7 @@ def init_db(cfg):
         cursor.close()
         blacklist_db = MySQLDatabase(name_db, host=host, port=port, user=login, passwd=password)
         database_proxy.initialize(blacklist_db)
-        database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
+        database_proxy.create_tables([Dump, Item, IP, IPResolve, Domain, URL, History], safe=True)
         if not db_exist_flag:
             init_dump_tbl()
         logger.info('Check database: MySQL Ok')
@@ -142,7 +150,7 @@ def init_db(cfg):
         cursor.close()
         blacklist_db = PostgresqlDatabase(name_db, host=host, port=port, user=login, password=password)
         database_proxy.initialize(blacklist_db)
-        database_proxy.create_tables([Dump, Item, IP, Domain, URL, History], safe=True)
+        database_proxy.create_tables([Dump, Item, IP, IPResolve, Domain, URL, History], safe=True)
         if not db_exist_flag:
             init_dump_tbl()
         logger.info('Check database: PostgreSQL Ok')
