@@ -59,6 +59,11 @@ class Config(object):
             self.config.add_section('Dump')
             self.config.set('Dump', 'DumpFileSave', '1')
             self.config.set('Dump', 'GetResultMaxCount', '10')
+            self.config.add_section('Resolver')
+            self.config.set('Resolver', 'IPv6', '0')
+            self.config.set('Resolver', 'DNS', '8.8.8.8 8.8.4.4 77.88.8.8 77.88.8.1')
+            self.config.add_section('OpenSSL')
+            self.config.set('OpenSSL', 'Path', '')
             with open(path_cfg + '/bl-rkn.cfg', 'w') as configfile:
                 self.config.write(configfile)
 
@@ -337,6 +342,33 @@ class Config(object):
             result_count = self.config.getint('Dump', 'GetResultMaxCount')
         except (configparser.NoOptionError, configparser.NoSectionError):
             print('Error section Dump or option GetResultMaxCount in config file')
-            result_count = '10'
+            result_count = 3
+            exit()
+        return result_count
+
+    def OpenSSL(self):
+        try:
+            result_count = self.config.get('OpenSSL', 'Path')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section OpenSSL or option Path in config file')
+            result_count = ''
+            exit()
+        return result_count
+
+    def IPv6(self):
+        try:
+            result_count = self.config.getboolean('Resolver', 'IPv6')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Resolver or option IPv6 in config file')
+            result_count = False
+            exit()
+        return result_count
+
+    def DNS(self):
+        try:
+            result_count = self.config.get('Resolver', 'DNS')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Resolver or option DNS in config file')
+            result_count = '8.8.8.8 8.8.4.4 77.88.8.8 77.88.8.1'
             exit()
         return result_count

@@ -9,8 +9,10 @@ from config import Config
 
 
 class Resolve:
-    def __init__(self):
-        pass
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.resolver = dns.resolver.Resolver()
+        self.resolver.nameservers = str(cfg.DNS()).strip()
 
     def get_domain(self):
         pass

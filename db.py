@@ -56,6 +56,8 @@ class IP(Model):
 class IPResolve(Model):
     domain = TextField(null=False)
     ip = TextField(null=False)
+    mask = IntegerField(null=False, default=32)
+    version = IntegerField(null=False, default=4)
 
     class Meta(object):
         database = database_proxy
