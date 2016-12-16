@@ -506,11 +506,21 @@ class Core(object):
         return True if re.match('^[\x00-\x7F]+$', string) else False
 
     def cleaner(self):
+        private_nets = ['0.%', '127.%', '192.168.%', '10.%', '172.16.%', '172.17.%', '172.18.%', '172.19.%', '172.20.%',
+                        '172.21.%', '172.22.%', '172.23.%', '172.24.%', '172.25.%', '172.26.%', '172.27.%', '172.28.%',
+                        '172.29.%', '172.30.%', '172.31.%']
         logger.info('Dump cleaner run')
         # history = History.select(History.id).order_by(History.id.desc()).limit(self.cfg.DiffCount())
         # Item.delete().where(~(Item.purge << history)).execute()
-        history_del = History.select(History.id).order_by(History.id.desc()).offset(self.cfg.DiffCount())
-        Item.delete().where(Item.purge << history_del).execute()
-        IP.delete().where(IP.purge << history_del).execute()
-        Domain.delete().where(Domain.purge << history_del).execute()
-        URL.delete().where(URL.purge << history_del).execute()
+        history_clear = History.select(History.id).order_by(History.id.desc()).offset(self.cfg.DiffCount())
+        Item.delete().where(Item.purge << history_clear).execute()
+        IP.delete().where(IP.purge << history_clear).execute()
+        Domain.delete().where(Domain.purge << history_clear).execute()
+        URL.delete().where(URL.purge << history_clear).execute()
+        history_rm = History.select(History.id).order_by(History.id.desc()).offset(self.cfg.HistoryCount())
+        History.delete().where(History.id << history_rm)
+        for net in private_nets:
+            ip_count = IP.delete().where(IP.ip % net)
+            if ip_count:
+                logger.info('IP error LIKE %s, count %d', net, ip_count)
+
