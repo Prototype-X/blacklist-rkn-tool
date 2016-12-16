@@ -24,7 +24,7 @@ class Resolver:
 
     def query(self):
         self.query_v4()
-        if self.cfg.IPv6:
+        if self.cfg.IPv6():
             self.query_v6()
         DNSResolver.update(purge=self.code_id).where(DNSResolver.add != self.code_id).execute()
 
