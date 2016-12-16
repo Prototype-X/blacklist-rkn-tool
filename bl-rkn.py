@@ -41,8 +41,9 @@ class Rutoken(object):
 
     def sign_request(self):
         logger.info('Sign file %s', self.cfg.XMLPathFName())
-        subprocess.call("sudo openssl smime -engine pkcs11_gost -sign -in " + self.cfg.XMLPathFName() + " -out " +
-                        self.cfg.P7SPathFName() + " -outform der -noverify -binary -signer " + self.cfg.PEMPathFName() +
+        subprocess.call("sudo " + self.cfg.Path() + "openssl smime -engine pkcs11_gost -sign -in " +
+                        self.cfg.XMLPathFName() + " -out " + self.cfg.P7SPathFName() +
+                        " -outform der -noverify -binary -signer " + self.cfg.PEMPathFName() +
                         " -inkey " + self.cfg.ID() + " -keyform engine", shell=True)
         return True
 
