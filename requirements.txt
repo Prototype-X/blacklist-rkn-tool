@@ -3,3 +3,4 @@ psycopg2
 peewee
 suds-jurko
 lxml
+dnspython

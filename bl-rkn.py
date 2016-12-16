@@ -168,7 +168,7 @@ class Reporter(object):
 
         if rollback is not None:
             logger.info('bl-rkn.py --rollback %d --domain --bt %s', rollback)
-            domain_sql = self._domain_rollback_sql(rollback, bt)
+            domain_sql = self.domain_rollback_sql(rollback, bt)
             self._domain_output(domain_sql)
 
     def _domain_diff_sql(self, diff, bt, stat):
@@ -228,7 +228,7 @@ class Reporter(object):
                        ~(Domain.domain << domain_dup_sql))
             return domain_dedup_sql
 
-    def _domain_rollback_sql(self, rollback, bt):
+    def domain_rollback_sql(self, rollback, bt):
         rb_list = self.idx_list[:rollback]
         if bt == 'ignore':
             domain_sql = Domain.select(fn.Distinct(Domain.domain))\
@@ -251,7 +251,7 @@ class Reporter(object):
 
         if rollback is not None:
             logger.info('bl-rkn.py --rollback %d --ip --bt %s', rollback, bt)
-            ip_sql = self._ip_rollback_sql(rollback, bt)
+            ip_sql = self.ip_rollback_sql(rollback, bt)
             self._ip_output(ip_sql)
 
     def _ip_diff_sql(self, diff, bt, stat):
@@ -312,7 +312,7 @@ class Reporter(object):
                        ~(IP.ip << ip_dup_sql))
             return ip_dedup_sql
 
-    def _ip_rollback_sql(self, rollback, bt):
+    def ip_rollback_sql(self, rollback, bt):
         rb_list = self.idx_list[:rollback]
         if bt == 'ignore':
             ip_sql = IP.select(fn.Distinct(IP.ip), IP.mask)\
@@ -334,7 +334,7 @@ class Reporter(object):
 
         if rollback is not None:
             logger.info('bl-rkn.py --rollback %d --url --bt %s', rollback, bt)
-            url_sql = self._url_rollback_sql(rollback, bt)
+            url_sql = self.url_rollback_sql(rollback, bt)
             self._url_output(url_sql)
 
     def _url_diff_sql(self, diff, bt, stat):
@@ -394,7 +394,7 @@ class Reporter(object):
                        ~(URL.url << url_dup_sql))
             return url_dedup_sql
 
-    def _url_rollback_sql(self, rollback, bt):
+    def url_rollback_sql(self, rollback, bt):
         rb_list = self.idx_list[:rollback]
         if bt == 'ignore':
             url_sql = URL.select(fn.Distinct(URL.url))\

@@ -506,7 +506,7 @@ class Core(object):
         return True if re.match('^[\x00-\x7F]+$', string) else False
 
     def cleaner(self):
-        logger.info('cleaner run')
+        logger.info('Dump cleaner run')
         # history = History.select(History.id).order_by(History.id.desc()).limit(self.cfg.DiffCount())
         # Item.delete().where(~(Item.purge << history)).execute()
         history_del = History.select(History.id).order_by(History.id.desc()).offset(self.cfg.DiffCount())
