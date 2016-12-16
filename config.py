@@ -60,6 +60,7 @@ class Config(object):
             self.config.set('Dump', 'DumpFileSave', '1')
             self.config.set('Dump', 'GetResultMaxCount', '10')
             self.config.add_section('Resolver')
+            self.config.set('Resolver', 'Resolver', '0')
             self.config.set('Resolver', 'IPv6', '0')
             self.config.set('Resolver', 'DNS', '8.8.8.8 8.8.4.4 77.88.8.8 77.88.8.1')
             self.config.add_section('OpenSSL')
@@ -352,6 +353,15 @@ class Config(object):
         except (configparser.NoOptionError, configparser.NoSectionError):
             print('Error section OpenSSL or option Path in config file')
             result_count = ''
+            exit()
+        return result_count
+
+    def Resolver(self):
+        try:
+            result_count = self.config.getboolean('Resolver', 'Resolver')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Resolver or option Resolver in config file')
+            result_count = False
             exit()
         return result_count
 

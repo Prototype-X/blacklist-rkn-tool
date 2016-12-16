@@ -4,7 +4,7 @@
 
 import dns.resolver
 import logging
-from db import History, Domain, IP, DNSResolver
+from db import History, IP, DNSResolver
 from peewee import fn
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,8 @@ class Resolver:
         self.query_v4()
         if self.cfg.IPv6():
             self.query_v6()
-        DNSResolver.update(purge=self.code_id).where(DNSResolver.add != self.code_id).execute()
+        DNSResolver.update(purge=self.code_id).where(DNSResolver.add != self.code_id,
+                                                     DNSResolver.purge >> None).execute()
 
     def query_v4(self):
         all_replies = set()
