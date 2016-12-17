@@ -468,7 +468,7 @@ class Core(object):
             return 1
         else:
             logger.info('no updates')
-            self.cleaner()
+            print('no updates')
             return 2
 
     def check_diff(self):
@@ -520,7 +520,7 @@ class Core(object):
         history_rm = History.select(History.id).order_by(History.id.desc()).offset(self.cfg.HistoryCount())
         History.delete().where(History.id << history_rm)
         for net in private_nets:
-            ip_count = IP.delete().where(IP.ip % net)
+            ip_count = IP.delete().where(IP.ip % net).execute()
             if ip_count:
                 logger.info('IP error LIKE %s, count %d', net, ip_count)
 
