@@ -58,9 +58,11 @@ class Config(object):
             self.config.set('History', 'DiffCount', '1')
             self.config.add_section('Dump')
             self.config.set('Dump', 'DumpFileSave', '1')
+            self.config.set('Dump', 'DumpPath', '')
             self.config.set('Dump', 'GetResultMaxCount', '10')
             self.config.add_section('Resolver')
             self.config.set('Resolver', 'Resolver', '0')
+            self.config.set('Resolver', 'QueryTimeout', '1')
             self.config.set('Resolver', 'IPv6', '0')
             self.config.set('Resolver', 'DNS', '8.8.8.8 8.8.4.4 77.88.8.8 77.88.8.1')
             self.config.add_section('OpenSSL')
@@ -338,6 +340,15 @@ class Config(object):
             exit()
         return file_save
 
+    def DumpPath(self):
+        try:
+            dump_path = self.config.get('Dump', 'DumpPath')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Dump or option DumpPath in config file')
+            dump_path = ''
+            exit()
+        return dump_path
+
     def GetResultMaxCount(self):
         try:
             result_count = self.config.getint('Dump', 'GetResultMaxCount')
@@ -349,36 +360,45 @@ class Config(object):
 
     def OpenSSL(self):
         try:
-            result_count = self.config.get('OpenSSL', 'Path')
+            path = self.config.get('OpenSSL', 'Path')
         except (configparser.NoOptionError, configparser.NoSectionError):
             print('Error section OpenSSL or option Path in config file')
-            result_count = ''
+            path = ''
             exit()
-        return result_count
+        return path
 
     def Resolver(self):
         try:
-            result_count = self.config.getboolean('Resolver', 'Resolver')
+            res = self.config.getboolean('Resolver', 'Resolver')
         except (configparser.NoOptionError, configparser.NoSectionError):
             print('Error section Resolver or option Resolver in config file')
-            result_count = False
+            res = False
             exit()
-        return result_count
+        return res
+
+    def QueryTimeout(self):
+        try:
+            timeout = self.config.getint('Resolver', 'QueryTimeout')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Resolver or option QueryTimeout in config file')
+            timeout = 1
+            exit()
+        return timeout
 
     def IPv6(self):
         try:
-            result_count = self.config.getboolean('Resolver', 'IPv6')
+            ipv6 = self.config.getboolean('Resolver', 'IPv6')
         except (configparser.NoOptionError, configparser.NoSectionError):
             print('Error section Resolver or option IPv6 in config file')
-            result_count = False
+            ipv6 = False
             exit()
-        return result_count
+        return ipv6
 
     def DNS(self):
         try:
-            result_count = self.config.get('Resolver', 'DNS')
+            dns = self.config.get('Resolver', 'DNS')
         except (configparser.NoOptionError, configparser.NoSectionError):
             print('Error section Resolver or option DNS in config file')
-            result_count = '8.8.8.8 8.8.4.4 77.88.8.8 77.88.8.1'
+            dns = '8.8.8.8 77.88.8.1'
             exit()
-        return result_count
+        return dns
