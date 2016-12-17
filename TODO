@@ -1,14 +1,12 @@
-todo HistoryCount функционал
 todo DumpPath добавить новую опцию путь хранения дампов
-todo обработка исключений и прочих нестандартных ситуации
 todo миграция на другую библиотеку SOAP например: async-suds, suds-py3
 todo bulk запись в бд, повысит производительность, но больше памяти будет использовано
 todo python-crontab - использовать для запуска скрипта по cron
 todo добавить аргумент CLI --ut атрибут реестра urgencyType
-todo openssl path добавить параметр
+todo openssl path добавить параметр +
 
 todo очистка истории изменений в реестре - функция, параметр DiffCount +
-todo очистка таблицы history - функция, параметр HistoryCount
+todo очистка таблицы history - функция, параметр HistoryCount +
 todo запуск функции очистки из CLI
 
 todo dns resolve domain. pypi: dnspython, py3dns
@@ -16,5 +14,5 @@ todo dns resolve domain. pypi: dnspython, py3dns
 todo domains encode (domain.encode('idna')).decode() +
 todo url encode urllib.parse.quote(url) +
 
-todo после новости Роскомнадзор заблокировал 127.0.0.1, добавить фильтрацию локальных ip и 0.0.0.0/0:
-todo (127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 0.0.0.0, 0.0.0.0/0)
+todo после новости Роскомнадзор заблокировал 127.0.0.1, добавить фильтрацию локальных ip и 0.0.0.0/0: +
+todo (127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 0.0.0.0, 0.0.0.0/0) +
