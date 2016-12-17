@@ -16,6 +16,7 @@ import random
 from config import Config
 from db import Dump, Item, IP, Domain, URL, History, init_db
 from core import Core
+from resolver import Resolver
 
 logger = logging.getLogger(__name__)
 
@@ -496,8 +497,8 @@ class BlrknCLI(object):
             self.report.statistics_show(diff=self.stat, stdout=True)
         elif self.dump:
             # self._peewee_debug()
-            # self._parse_dump_only()
-            self._get_dump()
+            self._parse_dump_only()
+            # self._get_dump()
         else:
             self.parser.print_help()
 
@@ -519,6 +520,10 @@ class BlrknCLI(object):
                 if self.dump.get_request():
                     result_bool = self.dump.parse_dump()
                     if result_bool == 1:
+                        if self.cfg.Resolver():
+                            dns_resolv = Resolver(self.cfg, self.report, self.dump.code_id)
+                            dns_resolv.query()
+                            dns_resolv.cleaner()
                         if self.cfg.Notify():
                             message = self.report.statistics_show()
                             self.notice.send_mail(message)
@@ -535,6 +540,9 @@ class BlrknCLI(object):
         History.create(requestCode=self.dump.code, date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         self.dump.code_id = History.get(History.requestCode == self.dump.code).id
         self.dump.parse_dump()
+        dns_resolv = Resolver(self.cfg, self.report, self.dump.code_id)
+        dns_resolv.query()
+        dns_resolv.cleaner()
 
     def _cfg_logging(self):
         """
