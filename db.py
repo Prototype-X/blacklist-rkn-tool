@@ -90,6 +90,7 @@ class URL(Model):
 class History(Model):
     requestCode = TextField(null=False)
     diff = BooleanField(null=False, default=True)
+    resolver = BooleanField(null=False, default=False)
     date = DateTimeField(null=False)
 
     class Meta(object):

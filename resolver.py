@@ -45,7 +45,7 @@ class Resolver:
             for domain in self.domain_sql:
                 for resolver in self.resolvers:
                     try:
-                        replies = resolver.query(domain.domain, 'A')
+                        replies = resolver.query(str(domain.domain).replace('*.', ''), 'A')
                         for reply in replies:
                             all_replies.add(reply.address)
                     except dns.exception.DNSException:
@@ -91,3 +91,8 @@ class Resolver:
             ip_count = DNSResolver.delete().where(DNSResolver.ip % net).execute()
             if ip_count:
                 logger.info('IP error LIKE %s, count %d', net, ip_count)
+
+        History.update(resolver=True).where(History.id == self.code_id)
+        history_inconsist_sql = History.select().where(History.resolver == False)
+        reslov_incosist_count = History.delete().where(History.id << history_inconsist_sql).execute()
+        logger.info('Delete rows incomplete resolving process %d', reslov_incosist_count)
