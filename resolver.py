@@ -4,16 +4,17 @@
 
 import dns.resolver
 import logging
-from db import History, IP, DNSResolver
+from db import History, IP, Domain, DNSResolver
 from peewee import fn
 
 logger = logging.getLogger(__name__)
 
 
 class Resolver:
-    def __init__(self, cfg, reporter, code_id):
+    def __init__(self, cfg, transact, reporter, code_id):
         logger.info('Resolver init')
         self.code_id = code_id
+        self.transact = transact
         self.cfg = cfg
         self.reporter = reporter
         self.domain_sql = self.reporter.domain_rollback_sql(0, 'ignore')
@@ -30,45 +31,53 @@ class Resolver:
         self.query_v4()
         if self.cfg.IPv6():
             self.query_v6()
+        dns_sql = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.add == self.code_id,
+                                                                        DNSResolver.version == 4)
+        ip_sql = IP.select(fn.Distinct(IP.ip), IP.mask).where(IP.mask == 32, IP.ip << dns_sql)
+        count_dup = DNSResolver.delete().where(DNSResolver.ip << ip_sql).execute()
+        logger.info('Resolver delete dup ip in table DNSResolver: %d', count_dup)
         DNSResolver.update(purge=self.code_id).where(DNSResolver.add != self.code_id,
                                                      DNSResolver.purge >> None).execute()
 
     def query_v4(self):
-        logger.info('Resolver ipv4 run')
         all_replies = set()
-        for domain in self.domain_sql:
-            for resolver in self.resolvers:
-                try:
-                    replies = resolver.query(domain.domain, 'A')
-                    for reply in replies:
-                        all_replies.add(reply.address)
-                except dns.exception.DNSException:
-                    pass
-            ip_sql = IP.select(fn.Distinct(IP.ip), IP.mask).where(IP.mask == 32, IP.ip << list(all_replies))
-            for ip in ip_sql:
-                all_replies.remove(ip.ip)
-            if len(all_replies):
-                for ip in all_replies:
-                    logger.info('Resolver add domain: %s, ip: %s', domain.domain, ip)
-                    DNSResolver.create(domain=domain.domain, ip=ip, add=self.code_id)
-                all_replies.clear()
+        with self.transact.atomic():
+            for domain in self.domain_sql:
+                for resolver in self.resolvers:
+                    try:
+                        replies = resolver.query(domain.domain, 'A')
+                        for reply in replies:
+                            all_replies.add(reply.address)
+                    except dns.exception.DNSException:
+                        pass
+
+                # ip_sql = IP.select(fn.Distinct(IP.ip), IP.mask).where(IP.mask == 32, IP.ip << list(all_replies))
+                # for ip in ip_sql:
+                #     all_replies.remove(ip.ip)
+
+                if len(all_replies):
+                    for ip in all_replies:
+                        logger.info('Resolver add domain: %s, ip: %s', domain.domain, ip)
+                        DNSResolver.create(domain=domain.domain, ip=ip, add=self.code_id)
+                    all_replies.clear()
 
     def query_v6(self):
         logger.info('Resolver ipv6 run')
         all_replies = set()
-        for domain in self.domain_sql:
-            for resolver in self.resolvers:
-                try:
-                    replies = resolver.query(domain.domain, 'AAAA')
-                    for reply in replies:
-                        all_replies.add(reply.address)
-                except dns.exception.DNSException:
-                    pass
-            if len(all_replies):
-                for ipv6 in all_replies:
-                    logger.info('Resolver add domain: %s, ipv6: %s', domain.domain, ipv6)
-                    DNSResolver.create(domain=domain.domain, ip=ipv6, mask=128, version=6, add=self.code_id)
-                all_replies.clear()
+        with self.transact.atomic():
+            for domain in self.domain_sql:
+                for resolver in self.resolvers:
+                    try:
+                        replies = resolver.query(domain.domain, 'AAAA')
+                        for reply in replies:
+                            all_replies.add(reply.address)
+                    except dns.exception.DNSException:
+                        pass
+                if len(all_replies):
+                    for ipv6 in all_replies:
+                        logger.info('Resolver add domain: %s, ipv6: %s', domain.domain, ipv6)
+                        DNSResolver.create(domain=domain.domain, ip=ipv6, mask=128, version=6, add=self.code_id)
+                    all_replies.clear()
 
     def cleaner(self):
         private_nets = ['0.%', '127.%', '192.168.%', '10.%', '172.16.%', '172.17.%', '172.18.%', '172.19.%', '172.20.%',
@@ -79,7 +88,6 @@ class Resolver:
         count = DNSResolver.delete().where(DNSResolver.purge << history_del).execute()
         logger.info('Table DNSResolver delete row %d', count)
         for net in private_nets:
-            ip_count = IP.delete().where(IP.ip % net).execute()
+            ip_count = DNSResolver.delete().where(DNSResolver.ip % net).execute()
             if ip_count:
                 logger.info('IP error LIKE %s, count %d', net, ip_count)
-

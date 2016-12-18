@@ -521,7 +521,7 @@ class BlrknCLI(object):
                     result_bool = self.dump.parse_dump()
                     if result_bool == 1:
                         if self.cfg.Resolver():
-                            dns_resolv = Resolver(self.cfg, self.report, self.dump.code_id)
+                            dns_resolv = Resolver(self.cfg, self.ctl_transact, self.report, self.dump.code_id)
                             dns_resolv.query()
                             dns_resolv.cleaner()
                         if self.cfg.Notify():
@@ -540,7 +540,7 @@ class BlrknCLI(object):
         History.create(requestCode=self.dump.code, date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         self.dump.code_id = History.get(History.requestCode == self.dump.code).id
         self.dump.parse_dump()
-        dns_resolv = Resolver(self.cfg, self.report, self.dump.code_id)
+        dns_resolv = Resolver(self.cfg, self.ctl_transact, self.report, self.dump.code_id)
         dns_resolv.query()
         dns_resolv.cleaner()
 
