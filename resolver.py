@@ -31,13 +31,27 @@ class Resolver:
         self.query_v4()
         if self.cfg.IPv6():
             self.query_v6()
-        dns_sql = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.add == self.code_id,
-                                                                        DNSResolver.version == 4)
-        ip_sql = IP.select(fn.Distinct(IP.ip), IP.mask).where(IP.mask == 32, IP.ip << dns_sql)
+        dns_sql_new = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
+                                                                            DNSResolver.add == self.code_id)
+        # dns_sql_last = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
+        #                                                                      DNSResolver.add != self.code_id)
+
+        # dns_sql_add = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
+        #                                                                     DNSResolver.add == self.code_id,
+        #                                                                     ~(DNSResolver.ip << dns_sql_last))
+
+        dns_sql_purge = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
+                                                                              DNSResolver.add != self.code_id,
+                                                                              ~(DNSResolver.ip << dns_sql_new))
+
+        DNSResolver.update(purge=self.code_id).where(DNSResolver.purge >> None,
+                                                     DNSResolver.ip << dns_sql_purge).execute()
+
+        dns_sql_v4 = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
+                                                                           DNSResolver.version == 4)
+        ip_sql = IP.select(fn.Distinct(IP.ip)).where(IP.mask == 32, IP.ip << dns_sql_v4)
         count_dup = DNSResolver.delete().where(DNSResolver.ip << ip_sql).execute()
         logger.info('Resolver delete dup ip in table DNSResolver: %d', count_dup)
-        DNSResolver.update(purge=self.code_id).where(DNSResolver.add != self.code_id,
-                                                     DNSResolver.purge >> None).execute()
 
     def query_v4(self):
         all_replies = set()
@@ -50,11 +64,6 @@ class Resolver:
                             all_replies.add(reply.address)
                     except dns.exception.DNSException:
                         pass
-
-                # ip_sql = IP.select(fn.Distinct(IP.ip), IP.mask).where(IP.mask == 32, IP.ip << list(all_replies))
-                # for ip in ip_sql:
-                #     all_replies.remove(ip.ip)
-
                 if len(all_replies):
                     for ip in all_replies:
                         logger.info('Resolver add domain: %s, ip: %s', domain.domain, ip)
@@ -86,13 +95,14 @@ class Resolver:
         logger.info('Resolver cleaner run')
         history_del = History.select(History.id).order_by(History.id.desc()).offset(self.cfg.DiffCount())
         count = DNSResolver.delete().where(DNSResolver.purge << history_del).execute()
-        logger.info('Table DNSResolver delete row %d', count)
+        logger.info('History cleaner Table DNSResolver delete row %d', count)
         for net in private_nets:
             ip_count = DNSResolver.delete().where(DNSResolver.ip % net).execute()
             if ip_count:
                 logger.info('IP error LIKE %s, count %d', net, ip_count)
 
-        History.update(resolver=True).where(History.id == self.code_id)
+        History.update(resolver=True).where(History.id == self.code_id).execute()
         history_inconsist_sql = History.select().where(History.resolver == False)
-        reslov_incosist_count = History.delete().where(History.id << history_inconsist_sql).execute()
-        logger.info('Delete rows incomplete resolving process %d', reslov_incosist_count)
+        reslov_inconsist_count = DNSResolver.delete().where(DNSResolver.add << history_inconsist_sql).execute()
+        DNSResolver.update(purge=None).where(DNSResolver.purge << history_inconsist_sql).execute()
+        logger.info('Delete rows incomplete resolving process %d', reslov_inconsist_count)

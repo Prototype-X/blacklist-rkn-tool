@@ -62,7 +62,7 @@ class Config(object):
             self.config.set('Dump', 'GetResultMaxCount', '10')
             self.config.add_section('Resolver')
             self.config.set('Resolver', 'Resolver', '0')
-            self.config.set('Resolver', 'QueryTimeout', '1')
+            self.config.set('Resolver', 'QueryTimeout', '0.5')
             self.config.set('Resolver', 'IPv6', '0')
             self.config.set('Resolver', 'DNS', '8.8.8.8 8.8.4.4 77.88.8.8 77.88.8.1')
             self.config.add_section('OpenSSL')
@@ -378,10 +378,10 @@ class Config(object):
 
     def QueryTimeout(self):
         try:
-            timeout = self.config.getint('Resolver', 'QueryTimeout')
+            timeout = self.config.getfloat('Resolver', 'QueryTimeout')
         except (configparser.NoOptionError, configparser.NoSectionError):
             print('Error section Resolver or option QueryTimeout in config file')
-            timeout = 1
+            timeout = 0.5
             exit()
         return timeout
 
