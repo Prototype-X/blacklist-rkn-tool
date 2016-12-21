@@ -121,7 +121,7 @@ Python версии 3.4.0 и выше
     GetResultMaxCount = 3 # количество попыток получения дампа
     
     [Resolver]
-    Resolver = 1
+    Resolver = 1 # вкл. резолвинг доменов
     IPv6 = 0 
     DNS = 8.8.4.4 77.88.8.1
 
