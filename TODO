@@ -9,7 +9,7 @@ todo очистка истории изменений в реестре - фун
 todo очистка таблицы history - функция, параметр HistoryCount +
 todo запуск функции очистки из CLI
 
-todo dns resolve domain. pypi: dnspython, py3dns
+todo dns resolve domain. pypi: dnspython, py3dns +
 
 todo domains encode (domain.encode('idna')).decode() +
 todo url encode urllib.parse.quote(url) +
