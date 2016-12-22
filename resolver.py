@@ -33,6 +33,7 @@ class Resolver:
             self.query_v6()
         dns_sql_new = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
                                                                             DNSResolver.add == self.code_id)
+
         # dns_sql_last = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
         #                                                                      DNSResolver.add != self.code_id)
 
@@ -57,12 +58,6 @@ class Resolver:
                                                DNSResolver.ip << dns_sql_dup).execute()
 
         logger.info('Resolver delete dup ip in table DNSResolver: %d', count_dup)
-
-        # dns_sql_v4 = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
-        #                                                                    DNSResolver.version == 4)
-        # ip_sql = IP.select(fn.Distinct(IP.ip)).where(IP.mask == 32, IP.ip << dns_sql_v4)
-        # count_dup = DNSResolver.delete().where(DNSResolver.ip << ip_sql).execute()
-        # logger.info('Resolver delete dup ip in table DNSResolver: %d', count_dup)
 
     def query_v4(self):
         all_replies = set()
