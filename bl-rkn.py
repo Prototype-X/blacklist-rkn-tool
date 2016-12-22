@@ -89,7 +89,7 @@ class Notifier(object):
 class Reporter(object):
     def __init__(self, cfg):
         self.cfg = cfg
-        self.idx_list = [idx.id for idx in History.select(History.id).where(History.diff == True)
+        self.idx_list = [idx.id for idx in History.select(History.id).where(History.dump == True)
             .order_by(History.id.desc()).limit(self.cfg.DiffCount())]
         self.block_type = ['ip', 'default', 'domain', 'domain-mask']
 
@@ -256,14 +256,10 @@ class Reporter(object):
             logger.info('Resolver on. Support blockType ignore or default')
             logger.info('bl-rkn.py --diff %d --ip --bt %s', diff, bt)
 
-            # ip_sql = self._ip_dedup_sql(diff, bt, 1)
-            # self._ip_output(ip_sql, '+')
             if bt in ['ignore', 'default']:
                 dns_sql = self._ip_dedup_resolv_sql(diff, bt, 1)
                 self._ip_output(dns_sql, '+')
 
-            # ip_sql = self._ip_dedup_sql(diff, bt, 0)
-            # self._ip_output(ip_sql, '-')
             if bt in ['ignore', 'default']:
                 dns_sql = self._ip_dedup_resolv_sql(diff, bt, 0)
                 self._ip_output(dns_sql, '-')
@@ -273,11 +269,11 @@ class Reporter(object):
             logger.info('bl-rkn.py --rollback %d --ip --bt %s', rollback, bt)
             ip_sql = self.ip_rollback_sql(rollback, bt)
             self._ip_output(ip_sql)
+
         elif rollback is not None and self.cfg.Resolver():
             logger.info('Resolver on. Support blockType ignore or default')
             logger.info('bl-rkn.py --rollback %d --ip --bt %s', rollback, bt)
-            # ip_sql = self.ip_rollback_sql(rollback, bt)
-            # self._ip_output(ip_sql)
+
             if bt in ['ignore', 'default']:
                 dns_sql = self.ip_rollback_resolv_sql(rollback, bt)
                 self._ip_output(dns_sql)
@@ -300,8 +296,8 @@ class Reporter(object):
             return ip_sql
 
     def _ip_dedup_resolv_sql(self, diff, bt, stat):
-        idx_list = [idx.id for idx in History.select(History.id).where(History.diff == True, History.resolver == True)
-            .order_by(History.id.desc()).limit(self.cfg.DiffCount())]
+        idx_list = [idx.id for idx in History.select(History.id).where(History.dump == True, History.resolver == True)
+                    .order_by(History.id.desc()).limit(self.cfg.DiffCount())]
         rb_list_add = idx_list[:diff + 1]
         rb_list_purge = idx_list[:diff]
         if stat and bt in ['ignore', 'default']:
@@ -379,8 +375,8 @@ class Reporter(object):
             return ip_sql
 
     def ip_rollback_resolv_sql(self, rollback, bt):
-        idx_list = [idx.id for idx in History.select(History.id).where(History.diff == True, History.resolver == True)
-            .order_by(History.id.desc()).limit(self.cfg.DiffCount())]
+        idx_list = [idx.id for idx in History.select(History.id).where(History.dump == True, History.resolver == True)
+                    .order_by(History.id.desc()).limit(self.cfg.DiffCount())]
         rb_list = idx_list[:rollback]
         if bt in ['ignore', 'default']:
             dns_sql = DNSResolver.select(fn.Distinct(DNSResolver.ip)) \
@@ -560,8 +556,8 @@ class BlrknCLI(object):
             self.report.statistics_show(diff=self.stat, stdout=True)
         elif self.dump:
             # self._peewee_debug()
-            self._parse_dump_only()
-            # self._get_dump()
+            # self._parse_dump_only()
+            self._get_dump()
         else:
             self.parser.print_help()
 

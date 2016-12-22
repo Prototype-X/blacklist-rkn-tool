@@ -153,6 +153,7 @@ class Core(object):
                     Dump.update(value='Error').where(Dump.param == 'lastResult').execute()
                     return False
         Dump.update(value='Error').where(Dump.param == 'lastResult').execute()
+        # History.update(dump=False).where(History.id == self.code_id).execute()
         logger.info('Cant get result.')
         return False
 
@@ -472,8 +473,8 @@ class Core(object):
             return 2
 
     def check_diff(self):
-        idx_list = [idx.id for idx in History.select(History.id).where(History.diff == True)
-                    .order_by(History.id.desc()).limit(self.cfg.DiffCount())]
+        idx_list = [idx.id for idx in History.select(History.id).order_by(History.id.desc())
+                    .limit(self.cfg.DiffCount())]
         ip_diff_add_sql = IP.select(fn.Count(fn.Distinct(IP.ip))).join(Item).where(IP.add == idx_list[0]).scalar()
         ip_diff_purge_sql = IP.select(fn.Count(fn.Distinct(IP.ip))).join(Item).where(IP.purge == idx_list[0]).scalar()
         domain_diff_add_sql = Domain.select(fn.Count(fn.Distinct(Domain.domain)))\
@@ -487,9 +488,10 @@ class Core(object):
 
         if ip_diff_add_sql or ip_diff_purge_sql or domain_diff_add_sql or \
                 domain_diff_purge_sql or url_diff_add_sql or url_diff_purge_sql:
+            History.update(dump=True).where(History.id == idx_list[0]).execute()
             return True
         else:
-            History.update(diff=False).where(History.id == idx_list[0]).execute()
+            # History.update(dump=False).where(History.id == idx_list[0]).execute()
             return False
 
     @staticmethod
