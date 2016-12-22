@@ -44,14 +44,25 @@ class Resolver:
                                                                               DNSResolver.add != self.code_id,
                                                                               ~(DNSResolver.ip << dns_sql_new))
 
-        DNSResolver.update(purge=self.code_id).where(DNSResolver.purge >> None,
-                                                     DNSResolver.ip << dns_sql_purge).execute()
+        count_purge = DNSResolver.update(purge=self.code_id).where(DNSResolver.purge >> None,
+                                                                   DNSResolver.ip << dns_sql_purge).execute()
 
-        dns_sql_v4 = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
-                                                                           DNSResolver.version == 4)
-        ip_sql = IP.select(fn.Distinct(IP.ip)).where(IP.mask == 32, IP.ip << dns_sql_v4)
-        count_dup = DNSResolver.delete().where(DNSResolver.ip << ip_sql).execute()
+        logger.info('Resolver mark ip as old in table DNSResolver: %d', count_purge)
+
+        dns_sql_dup = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
+                                                                            DNSResolver.add != self.code_id,
+                                                                            DNSResolver.ip << dns_sql_new)
+
+        count_dup = DNSResolver.delete().where(DNSResolver.purge >> None, DNSResolver.add == self.code_id,
+                                               DNSResolver.ip << dns_sql_dup).execute()
+
         logger.info('Resolver delete dup ip in table DNSResolver: %d', count_dup)
+
+        # dns_sql_v4 = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
+        #                                                                    DNSResolver.version == 4)
+        # ip_sql = IP.select(fn.Distinct(IP.ip)).where(IP.mask == 32, IP.ip << dns_sql_v4)
+        # count_dup = DNSResolver.delete().where(DNSResolver.ip << ip_sql).execute()
+        # logger.info('Resolver delete dup ip in table DNSResolver: %d', count_dup)
 
     def query_v4(self):
         all_replies = set()

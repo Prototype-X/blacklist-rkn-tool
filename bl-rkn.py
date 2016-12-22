@@ -256,14 +256,14 @@ class Reporter(object):
             logger.info('Resolver on. Support blockType ignore or default')
             logger.info('bl-rkn.py --diff %d --ip --bt %s', diff, bt)
 
-            ip_sql = self._ip_dedup_sql(diff, bt, 1)
-            self._ip_output(ip_sql, '+')
+            # ip_sql = self._ip_dedup_sql(diff, bt, 1)
+            # self._ip_output(ip_sql, '+')
             if bt in ['ignore', 'default']:
                 dns_sql = self._ip_dedup_resolv_sql(diff, bt, 1)
                 self._ip_output(dns_sql, '+')
 
-            ip_sql = self._ip_dedup_sql(diff, bt, 0)
-            self._ip_output(ip_sql, '-')
+            # ip_sql = self._ip_dedup_sql(diff, bt, 0)
+            # self._ip_output(ip_sql, '-')
             if bt in ['ignore', 'default']:
                 dns_sql = self._ip_dedup_resolv_sql(diff, bt, 0)
                 self._ip_output(dns_sql, '-')
@@ -276,8 +276,8 @@ class Reporter(object):
         elif rollback is not None and self.cfg.Resolver():
             logger.info('Resolver on. Support blockType ignore or default')
             logger.info('bl-rkn.py --rollback %d --ip --bt %s', rollback, bt)
-            ip_sql = self.ip_rollback_sql(rollback, bt)
-            self._ip_output(ip_sql)
+            # ip_sql = self.ip_rollback_sql(rollback, bt)
+            # self._ip_output(ip_sql)
             if bt in ['ignore', 'default']:
                 dns_sql = self.ip_rollback_resolv_sql(rollback, bt)
                 self._ip_output(dns_sql)
