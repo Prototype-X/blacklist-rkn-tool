@@ -34,8 +34,8 @@ class Resolver:
         dns_sql_new = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
                                                                             DNSResolver.add == self.code_id)
 
-        # dns_sql_last = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
-        #                                                                      DNSResolver.add != self.code_id)
+        dns_sql_last = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
+                                                                             DNSResolver.add != self.code_id)
 
         # dns_sql_add = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
         #                                                                     DNSResolver.add == self.code_id,
@@ -50,12 +50,8 @@ class Resolver:
 
         logger.info('Resolver mark ip as old in table DNSResolver: %d', count_purge)
 
-        dns_sql_dup = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.purge >> None,
-                                                                            DNSResolver.add != self.code_id,
-                                                                            DNSResolver.ip << dns_sql_new)
-
         count_dup = DNSResolver.delete().where(DNSResolver.purge >> None, DNSResolver.add == self.code_id,
-                                               DNSResolver.ip << dns_sql_dup).execute()
+                                               DNSResolver.ip << dns_sql_last).execute()
 
         logger.info('Resolver delete dup ip in table DNSResolver: %d', count_dup)
 

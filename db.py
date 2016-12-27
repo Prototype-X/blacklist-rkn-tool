@@ -30,8 +30,8 @@ class Item(Model):
     decision_date = DateField(null=False)
     decision_num = TextField(null=False)
     decision_org = TextField(null=False)
-    add = BigIntegerField(null=False)
-    purge = BigIntegerField(null=True)
+    add = BigIntegerField(null=False, index=True)
+    purge = BigIntegerField(null=True, index=True)
 
     class Meta(object):
         database = database_proxy
@@ -42,12 +42,12 @@ class IP(Model):
     content_id = BigIntegerField(null=False, index=True)
     # version - версия ip 4 или 6
     # version = IntegerField(null=False, default=4)
-    ip = TextField(null=False)
+    ip = TextField(null=False, index=True)
     mask = IntegerField(null=False, default=32)
     # source - источник записи dump или resolver
     # source = TextField(null=False)
-    add = BigIntegerField(null=False)
-    purge = BigIntegerField(null=True)
+    add = BigIntegerField(null=False, index=True)
+    purge = BigIntegerField(null=True, index=True)
 
     class Meta(object):
         database = database_proxy
@@ -55,11 +55,11 @@ class IP(Model):
 
 class DNSResolver(Model):
     domain = TextField(null=False)
-    ip = TextField(null=False)
+    ip = TextField(null=False, index=True)
     mask = IntegerField(null=False, default=32)
     version = IntegerField(null=False, default=4)
-    add = BigIntegerField(null=False)
-    purge = BigIntegerField(null=True)
+    add = BigIntegerField(null=False, index=True)
+    purge = BigIntegerField(null=True, index=True)
 
     class Meta(object):
         database = database_proxy
@@ -68,9 +68,9 @@ class DNSResolver(Model):
 class Domain(Model):
     item = ForeignKeyField(Item, on_delete='CASCADE', on_update='CASCADE', index=True)
     content_id = BigIntegerField(null=False, index=True)
-    domain = TextField(null=False)
-    add = BigIntegerField(null=False)
-    purge = BigIntegerField(null=True)
+    domain = TextField(null=False, index=True)
+    add = BigIntegerField(null=False, index=True)
+    purge = BigIntegerField(null=True, index=True)
 
     class Meta(object):
         database = database_proxy
@@ -79,9 +79,9 @@ class Domain(Model):
 class URL(Model):
     item = ForeignKeyField(Item, on_delete='CASCADE', on_update='CASCADE', index=True)
     content_id = BigIntegerField(null=False, index=True)
-    url = TextField(null=False)
-    add = BigIntegerField(null=False)
-    purge = BigIntegerField(null=True)
+    url = TextField(null=False, index=True)
+    add = BigIntegerField(null=False, index=True)
+    purge = BigIntegerField(null=True, index=True)
 
     class Meta(object):
         database = database_proxy
