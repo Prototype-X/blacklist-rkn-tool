@@ -150,7 +150,8 @@ class Reporter(object):
         message += 'IPs count: ' + str(ip_count) + '\n'
         message += 'DOMAINs count: ' + str(domain_count) + '\n'
         message += 'Item count: ' + str(id_count) + '\n'
-
+        logger.info('bl-rkn.py --stat %d', diff)
+        logger.info('%s', message)
         if stdout:
             print(message)
             return False
