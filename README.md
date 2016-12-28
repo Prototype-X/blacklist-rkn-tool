@@ -168,6 +168,7 @@ Python версии 3.4.0 и выше
 [pgtune](http://pgtune.leopard.in.ua/)
 
 
+
 [Документация PostgreSQL на русском языке](https://postgrespro.ru/docs/)
 
 [Книга Работа с PostgreSQL настройка и масштабирование](http://postgresql.leopard.in.ua/)
