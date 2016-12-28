@@ -115,27 +115,6 @@ def init_db(cfg):
         logger.info('Check database: SQLite Ok')
 
     elif type_db == 1:
-        import pymysql
-
-        db = pymysql.connect(host=host, port=port, user=login, passwd=password)
-        cursor = db.cursor()
-        check_db = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" + name_db + "'"
-        cursor.execute(check_db)
-        db_exist_flag = cursor.fetchone()
-        if not db_exist_flag:
-            create_db = "CREATE DATABASE IF NOT EXISTS `" + name_db + \
-                        "` CHARACTER SET utf8 COLLATE utf8_unicode_ci"
-            cursor.execute(create_db)
-
-        cursor.close()
-        blacklist_db = MySQLDatabase(name_db, host=host, port=port, user=login, passwd=password)
-        database_proxy.initialize(blacklist_db)
-        database_proxy.create_tables([Dump, Item, IP, DNSResolver, Domain, URL, History], safe=True)
-        if not db_exist_flag:
-            init_dump_tbl()
-        logger.info('Check database: MySQL Ok')
-
-    elif type_db == 2:
         import psycopg2
         from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 

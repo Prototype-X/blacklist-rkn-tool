@@ -77,7 +77,7 @@ Python версии 3.4.0 и выше
 **bl-rkn.cfg**
 
     [DataBase]
-    Type = 0 # 0 - SQLite, 1 - MySQL, 2 - PostgreSQL
+    Type = 0 # 0 - SQLite, 1 - PostgreSQL
     Name = blacklist # имя БД, для SQLite имя файла, без расширения
     Host = localhost
     Port = 5432
