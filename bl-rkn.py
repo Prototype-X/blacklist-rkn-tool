@@ -90,7 +90,7 @@ class Reporter(object):
     def __init__(self, cfg):
         self.cfg = cfg
         self.idx_list = [idx.id for idx in History.select(History.id).order_by(History.id.desc())
-            .limit(self.cfg.DiffCount())]
+                         .limit(self.cfg.DiffCount())]
         self.block_type = ['ip', 'default', 'domain', 'domain-mask']
 
     def statistics_show(self, diff=0, stdout=False):
