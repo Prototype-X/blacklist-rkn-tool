@@ -163,10 +163,22 @@ Python версии 3.4.0 и выше
 
         CREATE USER blrkn WITH PASSWORD 'passwd' CREATEDB;
 
+Оптимизация настроек сервера PostgreSQL:
+[mamonsu](https://github.com/postgrespro/mamonsu)
+[pgtune](http://pgtune.leopard.in.ua/)
+
+[Документация PostgreSQL на русском языке](https://postgrespro.ru/docs/)
+[Книга Работа с PostgreSQL настройка и масштабирование](http://postgresql.leopard.in.ua/)
+[Видео администрирование PostgreSQL](https://postgrespro.ru/education/courses)
+
 ###Примечания:###
 Описание процедуры получения реестра: http://vigruzki.rkn.gov.ru/docs/description_for_operators_actual.pdf
 
 **Версии 1.5.0 и выше не совместимы с предыдущими версиями blacklist-rkn-tool, создайте БД заново, перед этим экспортируйте таблицу history, а затем импортируйте в новую БД.**
+
+О поддержке БД SQLite/MySQL/PostgreSQL. Изначально благодаря использованию ORM и простых запросов SQL поддержка SQLite/MySQL/PostgreSQL не составляла труда. Схема БД стала более сложной, SQL запросы вложенными, а ORM peewee не смотря на все плюсы имеет ряд ограничений отсутствие поддержки temp table, view. Поддержка 3-х БД стала накладной. Поэтому MySQL больше не поддерживается. В будущем возможно peewee ORM будет выпилен из проекта или заменен более продвинутым ORM, а из поддерживаемых БД останется PostgreSQL.
+
+[Сравнение РСУБД](https://en.wikipedia.org/wiki/Comparison_of_relational_database_management_systems)
 
 ###Обзор аналогов:###
 
