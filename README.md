@@ -164,10 +164,14 @@ Python версии 3.4.0 и выше
 Оптимизация настроек сервера PostgreSQL:
 
 [mamonsu](https://github.com/postgrespro/mamonsu)
+
 [pgtune](http://pgtune.leopard.in.ua/)
 
+
 [Документация PostgreSQL на русском языке](https://postgrespro.ru/docs/)
+
 [Книга Работа с PostgreSQL настройка и масштабирование](http://postgresql.leopard.in.ua/)
+
 [Видео администрирование PostgreSQL](https://postgrespro.ru/education/courses)
 
 ###Примечания:###
