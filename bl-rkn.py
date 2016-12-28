@@ -152,6 +152,7 @@ class Reporter(object):
         message += 'Item count: ' + str(id_count) + '\n'
         logger.info('bl-rkn.py --stat %d', diff)
         logger.info('%s', message)
+
         if stdout:
             print(message)
             return False
