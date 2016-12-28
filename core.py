@@ -469,7 +469,7 @@ class Core(object):
             return 1
         else:
             logger.info('no updates')
-            print('no updates')
+            # print('no updates')
             return 2
 
     def check_diff(self):

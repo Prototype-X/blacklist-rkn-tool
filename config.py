@@ -64,7 +64,7 @@ class Config(object):
             self.config.set('Resolver', 'Resolver', '0')
             self.config.set('Resolver', 'QueryTimeout', '0.5')
             self.config.set('Resolver', 'IPv6', '0')
-            self.config.set('Resolver', 'DNS', '8.8.8.8 8.8.4.4 77.88.8.8 77.88.8.1')
+            self.config.set('Resolver', 'DNS', '8.8.4.4 77.88.8.1')
             self.config.add_section('OpenSSL')
             self.config.set('OpenSSL', 'Path', '')
             with open(path_cfg + '/bl-rkn.cfg', 'w') as configfile:
