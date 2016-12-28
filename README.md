@@ -169,6 +169,7 @@ Python версии 3.4.0 и выше
 
 
 
+
 [Документация PostgreSQL на русском языке](https://postgrespro.ru/docs/)
 
 [Книга Работа с PostgreSQL настройка и масштабирование](http://postgresql.leopard.in.ua/)
