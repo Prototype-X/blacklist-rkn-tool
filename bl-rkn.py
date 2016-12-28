@@ -89,8 +89,8 @@ class Notifier(object):
 class Reporter(object):
     def __init__(self, cfg):
         self.cfg = cfg
-        self.idx_list = [idx.id for idx in History.select(History.id).where(History.dump == True)
-            .order_by(History.id.desc()).limit(self.cfg.DiffCount())]
+        self.idx_list = [idx.id for idx in History.select(History.id).order_by(History.id.desc())
+            .limit(self.cfg.DiffCount())]
         self.block_type = ['ip', 'default', 'domain', 'domain-mask']
 
     def statistics_show(self, diff=0, stdout=False):
@@ -298,8 +298,8 @@ class Reporter(object):
             return ip_sql
 
     def _ip_dedup_resolv_sql(self, diff, bt, stat):
-        idx_list = [idx.id for idx in History.select(History.id).where(History.dump == True, History.resolver == True)
-                    .order_by(History.id.desc()).limit(self.cfg.DiffCount())]
+        idx_list = [idx.id for idx in History.select(History.id).order_by(History.id.desc())
+                    .limit(self.cfg.DiffCount())]
         rb_list_add = idx_list[:diff + 1]
         rb_list_purge = idx_list[:diff]
         if stat and bt in ['ignore', 'default']:
@@ -377,8 +377,8 @@ class Reporter(object):
             return ip_sql
 
     def ip_rollback_resolv_sql(self, rollback, bt):
-        idx_list = [idx.id for idx in History.select(History.id).where(History.dump == True, History.resolver == True)
-                    .order_by(History.id.desc()).limit(self.cfg.DiffCount())]
+        idx_list = [idx.id for idx in History.select(History.id).order_by(History.id.desc())
+                    .limit(self.cfg.DiffCount())]
         rb_list = idx_list[:rollback]
         if bt in ['ignore', 'default']:
             dns_sql = DNSResolver.select(fn.Distinct(DNSResolver.ip)) \
