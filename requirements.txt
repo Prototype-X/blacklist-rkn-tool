@@ -1,4 +1,3 @@
-pymysql
 psycopg2
 peewee
 suds-jurko
