@@ -27,7 +27,7 @@ Python3 скрипт **bl-rkn.py** для работы с реестром за�
 ###Требования:###
 Python версии 3.4.0 и выше
 
-Установленные пакеты: peewee, lxml, suds-jurko, psycopg2, pymysql, dnspython
+Установленные пакеты: peewee, lxml, suds-jurko, psycopg2, dnspython
 
 ###Установка:###
 1. unzip blacklist-rkn-tool.zip  -d /opt 
@@ -39,8 +39,6 @@ Python версии 3.4.0 и выше
     Для работы достаточно установить один Database Adapter, для типа БД который будет использоваться (SQLite установлен по умолчанию):
     
         pip3 install psycopg2   #для PostgreSQL
-        OR
-        pip3 install pymysql    #для MySQL
     
     Установить все пакеты:
         
@@ -164,6 +162,7 @@ Python версии 3.4.0 и выше
         CREATE USER blrkn WITH PASSWORD 'passwd' CREATEDB;
 
 Оптимизация настроек сервера PostgreSQL:
+
 [mamonsu](https://github.com/postgrespro/mamonsu)
 [pgtune](http://pgtune.leopard.in.ua/)
 
