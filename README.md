@@ -198,13 +198,13 @@ Python версии 3.4.0 и выше
 
         CREATE USER blrkn WITH PASSWORD 'passwd' CREATEDB;
 
-Оптимизация настроек сервера PostgreSQL:
+####Оптимизация настроек сервера PostgreSQL:####
 
 [mamonsu](https://github.com/postgrespro/mamonsu)
 
 [pgtune](http://pgtune.leopard.in.ua/)
 
----
+####Документация PostgreSQL:####
 
 [Документация PostgreSQL на русском языке](https://postgrespro.ru/docs/)
 
