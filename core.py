@@ -63,9 +63,19 @@ class Core(object):
 
     def check_new_dump(self):
         logger.info('Check if dump.xml has updates since last sync.')
-        last_date_dump = max(self.update_dump.lastDumpDate // 1000, self.update_dump.lastDumpDateUrgently // 1000)
-        current_date_dump = max(int(Dump.get(Dump.param == 'lastDumpDate').value),
-                                int(Dump.get(Dump.param == 'lastDumpDateUrgently').value))
+
+        if self.cfg.lastDumpDateUrgently() and not self.cfg.lastDumpDate():
+            last_date_dump = self.update_dump.lastDumpDateUrgently // 1000
+            current_date_dump = int(Dump.get(Dump.param == 'lastDumpDateUrgently').value)
+
+        elif self.cfg.lastDumpDate() and not self.cfg.lastDumpDateUrgently():
+            last_date_dump = self.update_dump.lastDumpDate // 1000
+            current_date_dump = int(Dump.get(Dump.param == 'lastDumpDate').value)
+        else:
+            last_date_dump = max(self.update_dump.lastDumpDate // 1000, self.update_dump.lastDumpDateUrgently // 1000)
+            current_date_dump = max(int(Dump.get(Dump.param == 'lastDumpDate').value),
+                                    int(Dump.get(Dump.param == 'lastDumpDateUrgently').value))
+
         logger.info('Current date: lastDumpDate: %s, lastDumpDateUrgently: %s',
                     datetime.fromtimestamp(int(Dump.get(Dump.param == 'lastDumpDate').value))
                     .strftime('%Y-%m-%d %H:%M:%S'),

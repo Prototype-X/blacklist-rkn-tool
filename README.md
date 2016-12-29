@@ -114,6 +114,8 @@ Python версии 3.4.0 и выше
     DiffCount = 3 # количество версий реестра хранимых в БД, минимальное значение 1 
 
     [Dump]
+    lastDumpDateUrgently = 1 # проверять новый дамп по параметру lastDumpDateUrgently
+    lastDumpDate = 0 # проверять новый дамп по параметру lastDumpDate (обновляется один раз в час)
     DumpFileSave = 1 # сохранять дампы
     DumpPath = # если не указано тогда сохранять дампы в директории скрипта/dumps/
     GetResultMaxCount = 3 # количество попыток получения дампа

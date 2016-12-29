@@ -57,6 +57,8 @@ class Config(object):
             self.config.set('History', 'HistoryCount', '0')
             self.config.set('History', 'DiffCount', '1')
             self.config.add_section('Dump')
+            self.config.set('Dump', 'lastDumpDate', '0')
+            self.config.set('Dump', 'lastDumpDateUrgently', '1')
             self.config.set('Dump', 'DumpFileSave', '1')
             self.config.set('Dump', 'DumpPath', '')
             self.config.set('Dump', 'GetResultMaxCount', '10')
@@ -330,6 +332,24 @@ class Config(object):
             diff_count = '1'
             exit()
         return int(diff_count)
+
+    def lastDumpDateUrgently(self):
+        try:
+            file_save = self.config.getboolean('Dump', 'lastDumpDateUrgently')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Dump or option lastDumpDateUrgently in config file')
+            file_save = True
+            exit()
+        return file_save
+
+    def lastDumpDate(self):
+        try:
+            file_save = self.config.getboolean('Dump', 'lastDumpDate')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Dump or option lastDumpDate in config file')
+            file_save = False
+            exit()
+        return file_save
 
     def DumpFileSave(self):
         try:
