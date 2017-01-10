@@ -100,12 +100,15 @@ class Reporter(object):
 
         message = 'vigruzki.rkn.gov.ru update: ' + date_time + '\n'
 
-        url_add_sql = self._url_diff_sql(diff, 'ignore', 1)
+        url_add_sql = self._url_dedup_sql(diff, 'ignore', 1)
         message += '\nURLs added: \n\n'
         for url_add in url_add_sql:
             message += url_add.url + '\n'
 
-        ip_add_sql = self._ip_diff_sql(diff, 'ignore', 1)
+        if self.cfg.Resolver():
+            ip_add_sql = self._ip_dedup_resolv_sql(diff, 'ignore', 1)
+        else:
+            ip_add_sql = self._ip_dedup_sql(diff, 'ignore', 1)
         message += '\nIPs added: \n\n'
         for ip_add in ip_add_sql:
             if ip_add.mask < 32:
@@ -113,17 +116,20 @@ class Reporter(object):
             else:
                 message += ip_add.ip + '\n'
 
-        domain_add_sql = self._domain_diff_sql(diff, 'ignore', 1)
+        domain_add_sql = self._domain_dedup_sql(diff, 'ignore', 1)
         message += '\nDOMAINs added: \n\n'
         for domain_add in domain_add_sql:
             message += domain_add.domain + '\n'
 
-        url_del_sql = self._url_diff_sql(diff, 'ignore', 0)
+        url_del_sql = self._url_dedup_sql(diff, 'ignore', 0)
         message += '\nURLs deleted: \n\n'
         for url_del in url_del_sql:
             message += url_del.url + '\n'
 
-        ip_del_sql = self._ip_diff_sql(diff, 'ignore', 0)
+        if self.cfg.Resolver():
+            ip_del_sql = self._ip_dedup_resolv_sql(diff, 'ignore', 0)
+        else:
+            ip_del_sql = self._ip_dedup_sql(diff, 'ignore', 0)
         message += '\nIPs deleted: \n\n'
         for ip_del in ip_del_sql:
             if ip_del.mask < 32:
@@ -131,7 +137,7 @@ class Reporter(object):
             else:
                 message += ip_del.ip + '\n'
 
-        domain_del_sql = self._domain_diff_sql(diff, 'ignore', 0)
+        domain_del_sql = self._domain_dedup_sql(diff, 'ignore', 0)
         message += '\nDOMAINs deleted: \n\n'
         for domain_del in domain_del_sql:
             message += domain_del.domain + '\n'
@@ -171,7 +177,7 @@ class Reporter(object):
             self._domain_output(domain_sql, '-')
 
         if rollback is not None:
-            logger.info('bl-rkn.py --rollback %d --domain --bt %s', rollback)
+            logger.info('bl-rkn.py --rollback %d --domain --bt %s', rollback, bt)
             domain_sql = self.domain_rollback_sql(rollback, bt)
             self._domain_output(domain_sql)
 

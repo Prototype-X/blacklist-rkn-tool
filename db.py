@@ -135,8 +135,7 @@ def init_db(cfg):
         blacklist_db = PostgresqlDatabase(name_db, host=host, port=port, user=login, password=password)
         database_proxy.initialize(blacklist_db)
         database_proxy.create_tables([Dump, Item, IP, DNSResolver, Domain, URL, History], safe=True)
-        if not db_exist_flag:
-            init_dump_tbl()
+        init_dump_tbl()
         logger.info('Check database: PostgreSQL Ok')
 
     else:
