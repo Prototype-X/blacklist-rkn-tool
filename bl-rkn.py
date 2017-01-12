@@ -563,6 +563,8 @@ class BlrknCLI(object):
         elif self.stat is not None:
             self.report.statistics_show(diff=self.stat, stdout=True)
         elif self.dump:
+            if self.cfg.Notify():
+                self.notice = Notifier(self.cfg)
             # self._peewee_debug()
             # self._parse_dump_only()
             self._get_dump()
@@ -576,7 +578,6 @@ class BlrknCLI(object):
         srv_msg = self.dump.check_service_upd()
         if srv_msg:
             if self.cfg.Notify():
-                self.notice = Notifier(self.cfg)
                 self.notice.send_mail(srv_msg, subject='vigruzki.rkn.gov.ru service update')
         if self.dump.check_new_dump():
             if self.cfg.GenRequest():
