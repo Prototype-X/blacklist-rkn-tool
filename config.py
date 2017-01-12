@@ -378,7 +378,7 @@ class Config(object):
             exit()
         return result_count
 
-    def OpenSSL(self):
+    def Path(self):
         try:
             path = self.config.get('OpenSSL', 'Path')
         except (configparser.NoOptionError, configparser.NoSectionError):
