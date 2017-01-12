@@ -549,18 +549,22 @@ class BlrknCLI(object):
 
         self.ctl_transact = init_db(self.cfg)
 
-        self.report = Reporter(self.cfg)
         if self.diff is None and self.rollback is None:
             self.rollback = 0
         if self.ip_print:
+            self.report = Reporter(self.cfg)
             self.report.ip_show(bt=self.block_type, diff=self.diff, rollback=self.rollback)
         elif self.url_print:
+            self.report = Reporter(self.cfg)
             self.report.url_show(bt=self.block_type, diff=self.diff, rollback=self.rollback)
         elif self.domain_print:
+            self.report = Reporter(self.cfg)
             self.report.domain_show(bt=self.block_type, diff=self.diff, rollback=self.rollback)
         elif self.history_print:
+            self.report = Reporter(self.cfg)
             self.report.history_show()
         elif self.stat is not None:
+            self.report = Reporter(self.cfg)
             self.report.statistics_show(diff=self.stat, stdout=True)
         elif self.dump:
             if self.cfg.Notify():
@@ -593,6 +597,7 @@ class BlrknCLI(object):
                             dns_resolv.query()
                             dns_resolv.cleaner()
                         if self.cfg.Notify():
+                            self.report = Reporter(self.cfg)
                             message = self.report.statistics_show()
                             self.notice.send_mail(message)
                     elif result_bool == 0:
