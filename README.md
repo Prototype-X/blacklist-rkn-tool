@@ -49,7 +49,7 @@ Python версии 3.4.0 и выше
 
 6. Для отправки писем:
 
-        sudo apt-get install sendmail
+    [sudo apt-get install postfix](https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-postfix-as-a-send-only-smtp-server-on-ubuntu-14-04)
 
 ###Запуск:###
 

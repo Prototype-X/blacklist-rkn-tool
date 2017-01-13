@@ -70,7 +70,7 @@ class Notifier(object):
         msg['To'] = self.to_address
         if self.auth:
             server = smtplib.SMTP(self.server_address, self.server_port)
-            server.ehlo()
+            server.ehlo_or_helo_if_needed()
             if self.starttls:
                 server.starttls()
             server.login(self.login, self.password)
@@ -78,8 +78,8 @@ class Notifier(object):
             server.quit()
         else:
             server = smtplib.SMTP(self.server_address, self.server_port)
-            server.ehlo()
             server.connect()
+            server.ehlo_or_helo_if_needed()
             server.sendmail(self.from_address, self.to_address, msg.as_string())
             server.quit()
         logger.info('Send email from %s to %s', self.from_address, self.to_address)
@@ -607,15 +607,18 @@ class BlrknCLI(object):
                         logger.info('parse_dump error')
 
     def _parse_dump_only(self):
+        # self.report = Reporter(self.cfg)
+        # message = self.report.statistics_show()
+        # self.notice.send_mail(message)
         self.dump = Core(self.ctl_transact, self.cfg)
         self.dump.code = 'test_' + ''.join(random.SystemRandom().
                                            choice('abcdefgijklmnoprstuvwxyz1234567890') for _ in range(8))
         History.create(requestCode=self.dump.code, date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         self.dump.code_id = History.get(History.requestCode == self.dump.code).id
         self.dump.parse_dump()
-        dns_resolv = Resolver(self.cfg, self.ctl_transact, self.report, self.dump.code_id)
-        dns_resolv.query()
-        dns_resolv.cleaner()
+        # dns_resolv = Resolver(self.cfg, self.ctl_transact, self.report, self.dump.code_id)
+        # dns_resolv.query()
+        # dns_resolv.cleaner()
 
     def _cfg_logging(self):
         """
