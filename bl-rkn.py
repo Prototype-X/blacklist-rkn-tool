@@ -147,8 +147,16 @@ class Reporter(object):
             .where(~(Domain.add << rb_list) & ((Domain.purge >> None) | (Domain.purge << rb_list))).scalar()
         url_count = URL.select(fn.Count(fn.Distinct(URL.url))) \
             .where(~(URL.add << rb_list) & ((URL.purge >> None) | (URL.purge << rb_list))).scalar()
-        ip_count = IP.select(fn.Count(fn.Distinct(IP.ip))) \
-            .where(~(IP.add << rb_list) & ((IP.purge >> None) | (IP.purge << rb_list))).scalar()
+
+        if self.cfg.Resolver():
+            ip_count = DNSResolver.select(fn.Count(fn.Distinct(DNSResolver.ip))) \
+                .where(~(DNSResolver.add << rb_list) &
+                       ((DNSResolver.purge >> None) |
+                        (DNSResolver.purge << rb_list))).scalar()
+        else:
+            ip_count = IP.select(fn.Count(fn.Distinct(IP.ip))) \
+                .where(~(IP.add << rb_list) & ((IP.purge >> None) | (IP.purge << rb_list))).scalar()
+
         id_count = Item.select(fn.Count(fn.Distinct(Item.content_id))) \
             .where(~(Item.add << rb_list) & ((Item.purge >> None) | (Item.purge << rb_list))).scalar()
 
@@ -304,27 +312,25 @@ class Reporter(object):
             return ip_sql
 
     def _ip_dedup_resolv_sql(self, diff, bt, stat):
-        idx_list = [idx.id for idx in History.select(History.id).order_by(History.id.desc())
-                    .limit(self.cfg.DiffCount())]
-        rb_list_add = idx_list[:diff + 1]
-        rb_list_purge = idx_list[:diff]
+        rb_list_add = self.idx_list[:diff + 1]
+        rb_list_purge = self.idx_list[:diff]
         if stat and bt in ['ignore', 'default']:
-            ip_diff_sql = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.add == idx_list[diff])
+            ip_diff_sql = DNSResolver.select(fn.Distinct(DNSResolver.ip)).where(DNSResolver.add == self.idx_list[diff])
             ip_dup_sql = DNSResolver.select(fn.Distinct(DNSResolver.ip)) \
                 .where(~(DNSResolver.add << rb_list_add) &
                        ((DNSResolver.purge >> None) | (DNSResolver.purge << rb_list_add)) &
                        (DNSResolver.ip << ip_diff_sql))
             ip_dedup_sql = DNSResolver.select(fn.Distinct(DNSResolver.ip), DNSResolver.mask) \
-                .where((DNSResolver.add == idx_list[diff]) & ~(DNSResolver.ip << ip_dup_sql))
+                .where((DNSResolver.add == self.idx_list[diff]) & ~(DNSResolver.ip << ip_dup_sql))
             return ip_dedup_sql
         elif not stat and bt in ['ignore', 'default']:
             ip_diff_sql = DNSResolver.select(fn.Distinct(DNSResolver.ip)) \
-                .where(DNSResolver.purge == idx_list[diff])
+                .where(DNSResolver.purge == self.idx_list[diff])
             ip_dup_sql = DNSResolver.select(fn.Distinct(DNSResolver.ip)) \
                 .where(~(DNSResolver.add << rb_list_purge) &
-                       (DNSResolver.purge >> None) & (DNSResolver.purge << ip_diff_sql))
+                       (DNSResolver.purge >> None) & (DNSResolver.ip << ip_diff_sql))
             ip_dedup_sql = DNSResolver.select(fn.Distinct(DNSResolver.ip), DNSResolver.mask) \
-                .where((DNSResolver.purge == idx_list[diff]) & ~(DNSResolver.ip << ip_dup_sql))
+                .where((DNSResolver.purge == self.idx_list[diff]) & ~(DNSResolver.ip << ip_dup_sql))
             return ip_dedup_sql
         else:
             return None
