@@ -599,6 +599,7 @@ class BlrknCLI(object):
                     result_bool = self.dump.parse_dump()
                     if result_bool == 1:
                         if self.cfg.Resolver():
+                            self.report = Reporter(self.cfg)
                             dns_resolv = Resolver(self.cfg, self.ctl_transact, self.report, self.dump.code_id)
                             dns_resolv.query()
                             dns_resolv.cleaner()
