@@ -38,6 +38,7 @@ Python версии 3.4.0 и выше
     
     Для работы достаточно установить один Database Adapter, для типа БД который будет использоваться (SQLite установлен по умолчанию):
     
+        apt install libpq-dev
         pip3 install psycopg2   #для PostgreSQL
     
     Установить все пакеты:
