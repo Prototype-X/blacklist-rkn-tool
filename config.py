@@ -57,7 +57,7 @@ class Config(object):
             self.config.set('History', 'HistoryCount', '0')
             self.config.set('History', 'DiffCount', '1')
             self.config.add_section('Dump')
-            self.config.set('Dump', 'lastDumpDate', '0')
+            self.config.set('Dump', 'lastDumpDate', '1')
             self.config.set('Dump', 'lastDumpDateUrgently', '1')
             self.config.set('Dump', 'DumpFileSave', '1')
             self.config.set('Dump', 'DumpPath', '')
