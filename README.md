@@ -47,7 +47,8 @@ Python версии 3.4.0 и выше
 4. Запустите скрипт, затем отредактируйте **bl-rkn.cfg**
 5. Настройте запуск по cron
 
-       19 */2 * * *  root  /usr/bin/python3 /opt/blacklist-rkn-tool/bl-rkn.py --dump
+       19 */3 * * *  root  /usr/bin/python3 /opt/blacklist-rkn-tool/bl-rkn.py --dump
+       
        #права root нужны для подписи запроса с использованием rutoken
 
 6. Для отправки писем:
@@ -118,7 +119,7 @@ Python версии 3.4.0 и выше
 
     [Dump]
     lastDumpDateUrgently = 1 # проверять новый дамп по параметру lastDumpDateUrgently
-    lastDumpDate = 0 # проверять новый дамп по параметру lastDumpDate (обновляется один раз в час)
+    lastDumpDate = 1 # проверять новый дамп по параметру lastDumpDate (обновляется один раз в час)
     DumpFileSave = 1 # сохранять дампы
     DumpPath = # если не указано тогда сохранять дампы в директории скрипта/dumps/
     GetResultMaxCount = 3 # количество попыток получения дампа
