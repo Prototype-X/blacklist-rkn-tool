@@ -47,8 +47,7 @@ Python версии 3.4.0 и выше
 4. Запустите скрипт, затем отредактируйте **bl-rkn.cfg**
 5. Настройте запуск по cron
 
-       19 */3 * * *  root  /usr/bin/python3 /opt/blacklist-rkn-tool/bl-rkn.py --dump
-       
+       19 */3 * * *  root  /usr/bin/python3 /opt/blacklist-rkn-tool/bl-rkn.py --dump   
        #права root нужны для подписи запроса с использованием rutoken
 
 6. Для отправки писем:
