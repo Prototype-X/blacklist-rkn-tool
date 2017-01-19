@@ -240,7 +240,7 @@ Python версии 3.4.0 и выше
 * https://github.com/alamer/ZapretParser - Java
 * [Подборка скриптов от пользователей forum.nag.ru](https://www.evernote.com/shard/s185/sh/ceb0b021-47e7-4c61-ab43-bc6db27fe919/c535b6e5047ec69d304519fe81c2c9ac?noteKey=c535b6e5047ec69d304519fe81c2c9ac)
 
-###Утилиты для блокировки сайтов:###
+###GNU GPL утилиты для блокировки сайтов:###
 
 [nfqfilter](https://github.com/max197616/nfqfilter)
 
