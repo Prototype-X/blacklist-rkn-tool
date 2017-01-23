@@ -4,7 +4,7 @@
 
 import dns.resolver
 import logging
-from db import History, IP, Domain, DNSResolver
+from db import History, DNSResolver
 from peewee import fn
 
 logger = logging.getLogger(__name__)

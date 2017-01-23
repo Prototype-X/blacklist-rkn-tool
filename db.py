@@ -3,7 +3,7 @@
 __author__ = 'maximus'
 
 from peewee import Proxy, Model, CharField, TextField, DateField, DateTimeField, IntegerField, BigIntegerField, \
-                   BooleanField, SqliteDatabase, MySQLDatabase, PostgresqlDatabase, ForeignKeyField, CompositeKey
+                   BooleanField, SqliteDatabase, PostgresqlDatabase, ForeignKeyField
 import os
 
 import logging
