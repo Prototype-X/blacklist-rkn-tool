@@ -17,7 +17,6 @@ from config import Config
 from db import Dump, Item, IP, Domain, URL, History, DNSResolver, init_db
 from core import Core
 from resolver import Resolver
-import os
 
 logger = logging.getLogger(__name__)
 
@@ -536,7 +535,7 @@ class BlrknCLI(object):
                                  help="history list show")
         self.parser.add_argument('--bt', action='store', default='ignore',
                                  choices=['default', 'ip', 'domain', 'domain-mask'], help='blockType')
-        self.parser.add_argument("-v", "--version", action='version', version='version 2.1.0', help="show version")
+        self.parser.add_argument("-v", "--version", action='version', version='version 2.1.1', help="show version")
 
         self.args = self.parser.parse_args()
 
