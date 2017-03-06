@@ -87,7 +87,9 @@ Python версии 3.4.0 и выше
     Password = password
 
     [Log]
-    LogRewrite = 1 # перезаписывать log файл при каждом запуске
+    LogCount = 7 #количество файлов для ротации логов
+    LogRotate = midnight # время ротации s - секунды, h - часы, d - дни
+    LogInterval = 1 # если LogRotate = h, LogInterval = 2, тогда ротация лога будет каждые 2 часа
     LogPathFName = /opt/bl-rkn/bl-rkn.log # имя и путь log файла
 
     [Notify]
