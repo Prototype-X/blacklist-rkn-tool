@@ -6,6 +6,7 @@ __author__ = 'Prototype-X'
 from datetime import datetime
 import argparse
 import logging
+from logging.handlers import TimedRotatingFileHandler
 import smtplib
 from email.mime.text import MIMEText
 import subprocess
@@ -16,6 +17,7 @@ from config import Config
 from db import Dump, Item, IP, Domain, URL, History, DNSResolver, init_db
 from core import Core
 from resolver import Resolver
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -629,15 +631,13 @@ class BlrknCLI(object):
 
     def _cfg_logging(self):
         """
-        Configure logging output format.
+        Configure logging format, level, rotate.
         """
-        if self.cfg.LogRewrite():
-            filemode = 'w'
-        else:
-            filemode = 'a'
 
-        logging.basicConfig(filename=self.cfg.LogPathFName(), filemode=filemode,
-                            format=u'%(asctime)s  %(message)s', level=logging.INFO)
+        handler = TimedRotatingFileHandler(self.cfg.LogPathFName(), when=self.cfg.LogRotate(),
+                                           interval=self.cfg.LogInterval(), backupCount=self.cfg.LogCount())
+
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s  %(message)s', handlers=[handler])
 
     @staticmethod
     def _peewee_debug():

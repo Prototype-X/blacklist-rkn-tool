@@ -32,7 +32,9 @@ class Config(object):
             self.config.set('DataBase', 'User', 'User')
             self.config.set('DataBase', 'Password', 'Password')
             self.config.add_section('Log')
-            self.config.set('Log', 'LogRewrite', '1')
+            self.config.set('Log', 'LogCount', '7')
+            self.config.set('Log', 'LogRotate', 'midnight')
+            self.config.set('Log', 'LogInterval', '1')
             self.config.set('Log', 'LogPathFName', 'bl-rkn.log')
             self.config.add_section('Notify')
             self.config.set('Notify', 'Notify', '0')
@@ -126,14 +128,32 @@ class Config(object):
             exit()
         return pwd
 
-    def LogRewrite(self):
+    def LogCount(self):
         try:
-            log = self.config.getboolean('Log', 'LogRewrite')
+            log_count = self.config.getint('Log', 'LogCount')
         except (configparser.NoOptionError, configparser.NoSectionError):
             print('Error section Log or option Log in config file')
-            log = True
+            log_count = 7
             exit()
-        return log
+        return log_count
+
+    def LogRotate(self):
+        try:
+            log_rotate = self.config.get('Log', 'LogRotate')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Log or option Log in config file')
+            log_rotate = 'midnight'
+            exit()
+        return log_rotate
+
+    def LogInterval(self):
+        try:
+            log_interval = self.config.getint('Log', 'LogInterval')
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            print('Error section Log or option Log in config file')
+            log_interval = 1
+            exit()
+        return log_interval
 
     def LogPathFName(self):
         try:
