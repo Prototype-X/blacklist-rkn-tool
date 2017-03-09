@@ -92,6 +92,12 @@ class Resolver:
                         DNSResolver.create(domain=domain.domain, ip=ipv6, mask=128, version=6, add=self.code_id)
                     all_replies.clear()
 
+    @staticmethod
+    def clear_id(code_id):
+        reslove_delete = DNSResolver.delete().where(DNSResolver.add == code_id).execute()
+        DNSResolver.update(purge=None).where(DNSResolver.purge == code_id).execute()
+        logger.info('Delete resolve results history.id = %d: %d', code_id, reslove_delete)
+
     def cleaner(self):
         private_nets = ['0.%', '127.%', '192.168.%', '10.%', '172.16.%', '172.17.%', '172.18.%', '172.19.%', '172.20.%',
                         '172.21.%', '172.22.%', '172.23.%', '172.24.%', '172.25.%', '172.26.%', '172.27.%', '172.28.%',

@@ -619,9 +619,11 @@ class BlrknCLI(object):
                         logger.info('parse_dump error')
 
     def _resolve_domain(self):
-        history_last = History.select().order_by(History.id.desc()).get()
+        history_last = History.select().where(History.dump == True).order_by(History.id.desc()).get()
         self.report = Reporter(self.cfg)
         dns_resolv = Resolver(self.cfg, self.ctl_transact, self.report, history_last.id)
+        if history_last.resolver:
+            dns_resolv.clear_id(history_last.resolver)
         dns_resolv.query()
         dns_resolv.cleaner()
 
