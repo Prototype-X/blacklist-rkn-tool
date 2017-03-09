@@ -527,6 +527,7 @@ class BlrknCLI(object):
                                 default=None, help="rollback dump")
         self.group.add_argument("--stat", action="store", type=int, choices=choice_rb_diff, required=False,
                                 default=None, help="dump statistics")
+        self.parser.add_argument("--resolve", action="store_true", required=False, default=None, help="resolve domain")
         self.parser.add_argument("--url", action="store_true", required=False, default=False, help="url list show")
         self.parser.add_argument("--ip", action="store_true", required=False, default=False, help="ip list show")
         self.parser.add_argument("--domain", action="store_true", required=False, default=False,
@@ -550,6 +551,7 @@ class BlrknCLI(object):
         self.diff = self.args.diff
         self.rollback = self.args.rollback
         self.stat = self.args.stat
+        self.resolve = self.args.resolve
 
         self._cfg_logging()
         logger.info('Starting script.')
@@ -573,6 +575,8 @@ class BlrknCLI(object):
         elif self.stat is not None:
             self.report = Reporter(self.cfg)
             self.report.statistics_show(diff=self.stat, stdout=True)
+        elif self.resolve:
+            self._resolve_domain()
         elif self.dump:
             if self.cfg.Notify():
                 self.notice = Notifier(self.cfg)
@@ -613,6 +617,13 @@ class BlrknCLI(object):
                             message = 'Houston, we have a problem'
                             self.notice.send_mail(message)
                         logger.info('parse_dump error')
+
+    def _resolve_domain(self):
+        history_last = History.select().order_by(History.id.desc()).get()
+        self.report = Reporter(self.cfg)
+        dns_resolv = Resolver(self.cfg, self.ctl_transact, self.report, history_last.id)
+        dns_resolv.query()
+        dns_resolv.cleaner()
 
     def _parse_dump_only(self):
         # self.report = Reporter(self.cfg)

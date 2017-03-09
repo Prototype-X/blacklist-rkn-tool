@@ -26,6 +26,8 @@ class Resolver:
             resolver.timeout = self.cfg.QueryTimeout()
             resolver.lifetime = self.cfg.QueryTimeout()
 
+        logger.info('Resolver history.id: %s', self.code_id)
+
     def query(self):
         logger.info('Resolver run')
         self.query_v4()
