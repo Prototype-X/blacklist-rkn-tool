@@ -536,6 +536,8 @@ class BlrknCLI(object):
                                  help="history list show")
         self.parser.add_argument('--bt', action='store', default='ignore',
                                  choices=['default', 'ip', 'domain', 'domain-mask'], help='blockType')
+        self.parser.add_argument("-r", '--reverse', action="store_true", required=False, default=False,
+                                 help="if resolver on, set it off for show ip and stat")
         self.parser.add_argument("-v", "--version", action='version', version='version 2.1.1', help="show version")
 
         self.args = self.parser.parse_args()
@@ -552,12 +554,15 @@ class BlrknCLI(object):
         self.rollback = self.args.rollback
         self.stat = self.args.stat
         self.resolve = self.args.resolve
+        self.reverse = self.args.reverse
 
         self._cfg_logging()
         logger.info('Starting script.')
 
         self.ctl_transact = init_db(self.cfg)
 
+        if self.reverse:
+            self.cfg.Reverse()
         if self.diff is None and self.rollback is None:
             self.rollback = 0
         if self.ip_print:

@@ -442,3 +442,10 @@ class Config(object):
             dns = '8.8.8.8 77.88.8.1'
             exit()
         return dns
+
+    def Reverse(self):
+        try:
+            self.config.set('Resolver', 'Resolver', '0')
+        except (configparser.NoOptionError, configparser.NoSectionError, TypeError) as err:
+            print(err)
+            exit()
