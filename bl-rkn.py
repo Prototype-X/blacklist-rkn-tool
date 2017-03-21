@@ -617,6 +617,16 @@ class BlrknCLI(object):
                             self.report = Reporter(self.cfg)
                             message = self.report.statistics_show()
                             self.notice.send_mail(message)
+                    elif result_bool == 2:
+                        if self.cfg.Resolver():
+                            self.report = Reporter(self.cfg)
+                            dns_resolv = Resolver(self.cfg, self.ctl_transact, self.report, self.dump.code_id)
+                            dns_resolv.query()
+                            dns_resolv.cleaner()
+                            if self.cfg.Notify():
+                                self.report = Reporter(self.cfg)
+                                message = self.report.statistics_show()
+                                self.notice.send_mail(message)
                     elif result_bool == 0:
                         if self.cfg.Notify():
                             message = 'Houston, we have a problem'
@@ -638,7 +648,7 @@ class BlrknCLI(object):
         # self.notice.send_mail(message)
         self.dump = Core(self.ctl_transact, self.cfg)
         self.dump.code = 'test_' + ''.join(random.SystemRandom().
-                                           choice('abcdefgijklmnoprstuvwxyz1234567890') for _ in range(8))
+                                           choice('abcdefgijklmnoprstuvwxyz1234567890') for _ in range(32))
         History.create(requestCode=self.dump.code, date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         self.dump.code_id = History.get(History.requestCode == self.dump.code).id
         self.dump.parse_dump()
