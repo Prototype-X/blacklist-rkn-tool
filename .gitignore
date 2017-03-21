@@ -4,6 +4,7 @@ dumps/
 sce/
 *.cfg
 *.log
+*.log.*
 *.zip
 *.xml
 *.xml.p7s
