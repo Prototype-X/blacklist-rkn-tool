@@ -124,10 +124,10 @@ class Core(object):
         logger.info('Waiting for a 90 sec.')
         time.sleep(90)
         logger.info('Trying to get result...')
-        request = self.session.getResult(self.code)
         Dump.update(value='getRequest').where(Dump.param == 'lastAction').execute()
         max_count = self.cfg.GetResultMaxCount()
         for count in range(1, max_count + 1):
+            request = self.session.getResult(self.code)
             if request['result']:
                 logger.info('Got a dump ver. %s for the %s (INN %s)',
                             request['dumpFormatVersion'],
